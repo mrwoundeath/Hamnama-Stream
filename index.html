@@ -1,578 +1,564 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-
-  <title>باهم ببینیم - Stream</title>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #080808;
-      color: #fff;
-      font-family: Arial, Tahoma, sans-serif;
-    }
-
-    button, input {
-      font-family: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* =========================
-       LOGIN
-    ========================= */
-
-    #loginScreen {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: radial-gradient(circle at top, #252525, #080808 60%);
-    }
-
-    .login-card {
-      width: min(440px, 100%);
-      padding: 30px;
-      border-radius: 24px;
-      background: #181818;
-      border: 1px solid #333;
-      box-shadow: 0 20px 70px rgba(0,0,0,.55);
-    }
-
-    .logo {
-      text-align: center;
-      font-size: 31px;
-      font-weight: 900;
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #999;
-      margin-bottom: 28px;
-    }
-
-    .field {
-      margin-bottom: 15px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 7px;
-      color: #ccc;
-      font-size: 14px;
-    }
-
-    .field input {
-      width: 100%;
-      height: 48px;
-      padding: 0 14px;
-      border-radius: 13px;
-      border: 1px solid #444;
-      outline: none;
-      background: #0e0e0e;
-      color: #fff;
-      font-size: 15px;
-    }
-
-    .host-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 13px;
-      margin: 18px 0;
-      border-radius: 13px;
-      background: #121212;
-      border: 1px solid #333;
-    }
-
-    .host-option input {
-      width: 19px;
-      height: 19px;
-    }
-
-    #joinBtn {
-      width: 100%;
-      height: 50px;
-      border: 0;
-      border-radius: 14px;
-      background: #fff;
-      color: #000;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    #loginError {
-      min-height: 20px;
-      margin-top: 14px;
-      text-align: center;
-      color: #ff7777;
-      font-size: 14px;
-    }
-
-    /* =========================
-       APP
-    ========================= */
-
-    #app {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #topbar {
-      height: 58px;
-      min-height: 58px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 12px;
-      background: #111;
-      border-bottom: 1px solid #292929;
-      z-index: 20;
-    }
-
-    .app-title {
-      font-weight: 900;
-      white-space: nowrap;
-    }
-
-    .room-badge,
-    .role-badge {
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: #222;
-      color: #ccc;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .role-badge.host {
-      background: #303030;
-      color: #fff;
-    }
-
-    .top-spacer {
-      flex: 1;
-    }
-
-    .top-btn {
-      height: 38px;
-      padding: 0 11px;
-      border: 1px solid #393939;
-      border-radius: 10px;
-      background: #1a1a1a;
-      color: #fff;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .top-btn.active {
-      background: #fff;
-      color: #000;
-    }
-
-    /* =========================
-       MAIN
-    ========================= */
-
-    #main {
-      flex: 1;
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(0,1fr) 340px;
-    }
-
-    #videoSection {
-      min-width: 0;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      background: #000;
-    }
-
-    #videoWrap {
-      position: relative;
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #000;
-    }
-
-    #video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #000;
-    }
-
-    #videoMessage {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #777;
-      padding: 30px;
-      text-align: center;
-      pointer-events: none;
-    }
-
-    #playOverlay {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0,0,0,.35);
-    }
-
-    #playOverlay button {
-      width: 76px;
-      height: 76px;
-      border: 0;
-      border-radius: 50%;
-      background: #fff;
-      color: #000;
-      font-size: 30px;
-    }
-
-    #videoControls {
-      height: 52px;
-      min-height: 52px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      background: #111;
-      border-top: 1px solid #222;
-    }
-
-    .control-btn {
-      width: 38px;
-      height: 38px;
-      border: 1px solid #333;
-      border-radius: 9px;
-      background: #1c1c1c;
-      color: #fff;
-    }
-
-    #progress {
-      flex: 1;
-      min-width: 0;
-    }
-
-    #timeLabel {
-      min-width: 80px;
-      text-align: center;
-      direction: ltr;
-      color: #aaa;
-      font-size: 12px;
-    }
-
-    /* =========================
-       CHAT
-    ========================= */
-
-    #chatSection {
-      min-width: 0;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      background: #111;
-      border-right: 1px solid #292929;
-    }
-
-    #chatHeader {
-      height: 52px;
-      min-height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      border-bottom: 1px solid #292929;
-    }
-
-    #userCount {
-      color: #888;
-      font-size: 12px;
-    }
-
-    #users {
-      max-height: 120px;
-      overflow-y: auto;
-      padding: 8px 12px;
-      border-bottom: 1px solid #292929;
-    }
-
-    .user-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 7px 0;
-      font-size: 13px;
-    }
-
-    .user-role {
-      color: #888;
-      font-size: 11px;
-    }
-
-    #messages {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 12px;
-    }
-
-    .message {
-      margin-bottom: 12px;
-      word-break: break-word;
-    }
-
-    .message-name {
-      margin-bottom: 3px;
-      color: #888;
-      font-size: 11px;
-    }
-
-    .message-text {
-      display: inline-block;
-      max-width: 90%;
-      padding: 9px 11px;
-      border-radius: 12px;
-      background: #222;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    #chatForm {
-      display: flex;
-      gap: 7px;
-      padding: 9px;
-      border-top: 1px solid #292929;
-    }
-
-    #chatInput {
-      flex: 1;
-      min-width: 0;
-      height: 42px;
-      padding: 0 11px;
-      border: 1px solid #393939;
-      border-radius: 11px;
-      outline: none;
-      background: #181818;
-      color: #fff;
-    }
-
-    #chatSend {
-      width: 48px;
-      height: 42px;
-      border: 0;
-      border-radius: 11px;
-      background: #fff;
-      color: #000;
-      font-weight: bold;
-    }
-
-    /* =========================
-       SOURCE
-    ========================= */
-
-    #sourcePanel {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: rgba(0,0,0,.75);
-    }
-
-    .source-card {
-      width: min(520px,100%);
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 20px;
-      border-radius: 20px;
-      background: #161616;
-      border: 1px solid #333;
-    }
-
-    .source-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .source-title h3 {
-      margin: 0;
-    }
-
-    .close-btn {
-      width: 36px;
-      height: 36px;
-      border: 1px solid #333;
-      border-radius: 9px;
-      background: #222;
-      color: #fff;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 15px;
-    }
-
-    .tab {
-      flex: 1;
-      height: 42px;
-      border: 1px solid #333;
-      border-radius: 10px;
-      background: #202020;
-      color: #aaa;
-    }
-
-    .tab.active {
-      background: #fff;
-      color: #000;
-    }
-
-    .source-content input[type=text] {
-      width: 100%;
-      height: 45px;
-      padding: 0 11px;
-      border: 1px solid #3a3a3a;
-      border-radius: 10px;
-      outline: none;
-      background: #0f0f0f;
-      color: #fff;
-    }
-
-    .file-input {
-      width: 100%;
-      padding: 18px;
-      border: 1px dashed #555;
-      border-radius: 12px;
-      color: #aaa;
-      text-align: center;
-    }
-
-    .source-action {
-      width: 100%;
-      height: 46px;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 11px;
-      background: #fff;
-      color: #000;
-      font-weight: bold;
-    }
-
-    #uploadProgressWrap {
-      display: none;
-      margin-top: 14px;
-    }
-
-    #uploadProgress {
-      width: 100%;
-    }
-
-    #uploadStatus {
-      margin-top: 7px;
-      color: #999;
-      font-size: 12px;
-      text-align: center;
-    }
-
-    /* =========================
-       TOAST
-    ========================= */
-
-    #toast {
-      position: fixed;
-      left: 50%;
-      bottom: 25px;
-      z-index: 300;
-      max-width: 90%;
-      padding: 11px 16px;
-      border-radius: 12px;
-      background: #eee;
-      color: #000;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(-50%);
-      transition: .2s;
-      text-align: center;
-    }
-
-    #toast.show {
-      opacity: 1;
-    }
-
-    @media(max-width:850px) {
-
-      #main {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(0,1fr) 300px;
-      }
-
-      #chatSection {
-        border-top: 1px solid #292929;
-        border-right: 0;
-      }
-
-      .app-title {
-        display: none;
-      }
-    }
-
-    @media(orientation:landscape) and (max-width:1000px) {
-
-      #main {
-        grid-template-columns: minmax(0,1fr) 310px;
-        grid-template-rows: 1fr;
-      }
-
-      #chatSection {
-        border-top: 0;
-        border-right: 1px solid #292929;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>باهم ببینیم - Stream</title>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#080808;
+  color:#fff;
+  font-family:Arial,Tahoma,sans-serif;
+}
+
+button,input{
+  font-family:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* LOGIN */
+
+#loginScreen{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:radial-gradient(circle at top,#252525,#080808 60%);
+}
+
+.login-card{
+  width:min(440px,100%);
+  padding:30px;
+  border-radius:24px;
+  background:#181818;
+  border:1px solid #333;
+  box-shadow:0 20px 70px rgba(0,0,0,.55);
+}
+
+.logo{
+  text-align:center;
+  font-size:31px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#999;
+  margin-bottom:28px;
+}
+
+.field{
+  margin-bottom:15px;
+}
+
+.field label{
+  display:block;
+  margin-bottom:7px;
+  color:#ccc;
+  font-size:14px;
+}
+
+.field input{
+  width:100%;
+  height:48px;
+  padding:0 14px;
+  border-radius:13px;
+  border:1px solid #444;
+  outline:none;
+  background:#0e0e0e;
+  color:#fff;
+  font-size:15px;
+}
+
+.host-option{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px;
+  margin:18px 0;
+  border-radius:13px;
+  background:#121212;
+  border:1px solid #333;
+}
+
+.host-option input{
+  width:19px;
+  height:19px;
+}
+
+#joinBtn{
+  width:100%;
+  height:50px;
+  border:0;
+  border-radius:14px;
+  background:#fff;
+  color:#000;
+  font-weight:bold;
+  font-size:16px;
+}
+
+#loginError{
+  min-height:20px;
+  margin-top:14px;
+  text-align:center;
+  color:#ff7777;
+  font-size:14px;
+}
+
+/* APP */
+
+#app{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+#topbar{
+  height:58px;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 12px;
+  background:#111;
+  border-bottom:1px solid #292929;
+  z-index:20;
+}
+
+.app-title{
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.room-badge,
+.role-badge{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#222;
+  color:#ccc;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.role-badge.host{
+  background:#303030;
+  color:#fff;
+}
+
+.top-spacer{
+  flex:1;
+}
+
+.top-btn{
+  height:38px;
+  padding:0 11px;
+  border:1px solid #393939;
+  border-radius:10px;
+  background:#1a1a1a;
+  color:#fff;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.top-btn.active{
+  background:#fff;
+  color:#000;
+}
+
+/* MAIN */
+
+#main{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+}
+
+#videoSection{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  background:#000;
+}
+
+#videoWrap{
+  position:relative;
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+}
+
+#video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+#videoMessage{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#777;
+  padding:30px;
+  text-align:center;
+  pointer-events:none;
+}
+
+#playOverlay{
+  position:absolute;
+  inset:0;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.35);
+}
+
+#playOverlay button{
+  width:76px;
+  height:76px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#000;
+  font-size:30px;
+}
+
+#videoControls{
+  height:52px;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  background:#111;
+  border-top:1px solid #222;
+}
+
+.control-btn{
+  width:38px;
+  height:38px;
+  border:1px solid #333;
+  border-radius:9px;
+  background:#1c1c1c;
+  color:#fff;
+}
+
+#progress{
+  flex:1;
+  min-width:0;
+}
+
+#timeLabel{
+  min-width:80px;
+  text-align:center;
+  direction:ltr;
+  color:#aaa;
+  font-size:12px;
+}
+
+/* CHAT */
+
+#chatSection{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  background:#111;
+  border-right:1px solid #292929;
+}
+
+#chatHeader{
+  height:52px;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  border-bottom:1px solid #292929;
+}
+
+#userCount{
+  color:#888;
+  font-size:12px;
+}
+
+#users{
+  max-height:120px;
+  overflow-y:auto;
+  padding:8px 12px;
+  border-bottom:1px solid #292929;
+}
+
+.user-item{
+  display:flex;
+  justify-content:space-between;
+  padding:7px 0;
+  font-size:13px;
+}
+
+.user-role{
+  color:#888;
+  font-size:11px;
+}
+
+#messages{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  padding:12px;
+}
+
+.message{
+  margin-bottom:12px;
+  word-break:break-word;
+}
+
+.message-name{
+  margin-bottom:3px;
+  color:#888;
+  font-size:11px;
+}
+
+.message-text{
+  display:inline-block;
+  max-width:90%;
+  padding:9px 11px;
+  border-radius:12px;
+  background:#222;
+  font-size:14px;
+  line-height:1.5;
+}
+
+#chatForm{
+  display:flex;
+  gap:7px;
+  padding:9px;
+  border-top:1px solid #292929;
+}
+
+#chatInput{
+  flex:1;
+  min-width:0;
+  height:42px;
+  padding:0 11px;
+  border:1px solid #393939;
+  border-radius:11px;
+  outline:none;
+  background:#181818;
+  color:#fff;
+}
+
+#chatSend{
+  width:48px;
+  height:42px;
+  border:0;
+  border-radius:11px;
+  background:#fff;
+  color:#000;
+  font-weight:bold;
+}
+
+/* SOURCE */
+
+#sourcePanel{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.75);
+}
+
+.source-card{
+  width:min(520px,100%);
+  max-height:90vh;
+  overflow-y:auto;
+  padding:20px;
+  border-radius:20px;
+  background:#161616;
+  border:1px solid #333;
+}
+
+.source-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.source-title h3{
+  margin:0;
+}
+
+.close-btn{
+  width:36px;
+  height:36px;
+  border:1px solid #333;
+  border-radius:9px;
+  background:#222;
+  color:#fff;
+}
+
+.tabs{
+  display:flex;
+  gap:7px;
+  margin-bottom:15px;
+}
+
+.tab{
+  flex:1;
+  height:42px;
+  border:1px solid #333;
+  border-radius:10px;
+  background:#202020;
+  color:#aaa;
+}
+
+.tab.active{
+  background:#fff;
+  color:#000;
+}
+
+.source-content input[type=text]{
+  width:100%;
+  height:45px;
+  padding:0 11px;
+  border:1px solid #3a3a3a;
+  border-radius:10px;
+  outline:none;
+  background:#0f0f0f;
+  color:#fff;
+}
+
+.file-input{
+  width:100%;
+  padding:18px;
+  border:1px dashed #555;
+  border-radius:12px;
+  color:#aaa;
+  text-align:center;
+}
+
+.source-action{
+  width:100%;
+  height:46px;
+  margin-top:12px;
+  border:0;
+  border-radius:11px;
+  background:#fff;
+  color:#000;
+  font-weight:bold;
+}
+
+#uploadProgressWrap{
+  display:none;
+  margin-top:14px;
+}
+
+#uploadProgress{
+  width:100%;
+}
+
+#uploadStatus{
+  margin-top:7px;
+  color:#999;
+  font-size:12px;
+  text-align:center;
+}
+
+/* TOAST */
+
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  z-index:300;
+  max-width:90%;
+  padding:11px 16px;
+  border-radius:12px;
+  background:#eee;
+  color:#000;
+  opacity:0;
+  pointer-events:none;
+  transform:translateX(-50%);
+  transition:.2s;
+  text-align:center;
+}
+
+#toast.show{
+  opacity:1;
+}
+
+@media(max-width:850px){
+
+  #main{
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(0,1fr) 300px;
+  }
+
+  #chatSection{
+    border-top:1px solid #292929;
+    border-right:0;
+  }
+
+  .app-title{
+    display:none;
+  }
+}
+
+@media(orientation:landscape) and (max-width:1000px){
+
+  #main{
+    grid-template-columns:minmax(0,1fr) 310px;
+    grid-template-rows:1fr;
+  }
+
+  #chatSection{
+    border-top:0;
+    border-right:1px solid #292929;
+  }
+}
+</style>
 </head>
 
 <body>
 
-<!-- =========================
-     LOGIN
-========================= -->
+<!-- LOGIN -->
 
 <section id="loginScreen">
 
@@ -588,9 +574,7 @@
 
     <div class="field">
 
-      <label>
-        نام شما
-      </label>
+      <label>نام شما</label>
 
       <input
         id="nameInput"
@@ -604,9 +588,7 @@
 
     <div class="field">
 
-      <label>
-        کد روم
-      </label>
+      <label>کد روم</label>
 
       <input
         id="roomInput"
@@ -625,9 +607,7 @@
         type="checkbox"
       >
 
-      <span>
-        ورود به عنوان Host
-      </span>
+      <span>ورود به عنوان Host</span>
 
     </label>
 
@@ -642,9 +622,7 @@
 </section>
 
 
-<!-- =========================
-     APP
-========================= -->
+<!-- APP -->
 
 <section id="app" class="hidden">
 
@@ -670,16 +648,12 @@
 
     <div class="top-spacer"></div>
 
-    <!-- SPEAKER -->
-
     <button
       id="speakerBtn"
       class="top-btn active"
     >
       🔊 اسپیکر
     </button>
-
-    <!-- MICROPHONE -->
 
     <button
       id="voiceBtn"
@@ -765,9 +739,7 @@
 
       <div id="chatHeader">
 
-        <strong>
-          چت روم
-        </strong>
+        <strong>چت روم</strong>
 
         <span id="userCount">
           0/4
@@ -802,9 +774,7 @@
 </section>
 
 
-<!-- =========================
-     SOURCE PANEL
-========================= -->
+<!-- SOURCE PANEL -->
 
 <div
   id="sourcePanel"
@@ -815,9 +785,7 @@
 
     <div class="source-title">
 
-      <h3>
-        انتخاب ویدئو
-      </h3>
+      <h3>انتخاب ویدئو</h3>
 
       <button
         id="closeSource"
@@ -912,7 +880,7 @@
 <script>
 
 /* =========================================================
-   CONSTANTS
+   SETTINGS
 ========================================================= */
 
 const FIXED_HOST_CODE =
@@ -928,7 +896,7 @@ const socket =
 
 
 /* =========================================================
-   STATE
+   APP STATE
 ========================================================= */
 
 let roomCode = "";
@@ -936,56 +904,52 @@ let myName = "";
 let myRole = "guest";
 
 let currentSource = null;
+let currentUsers = [];
+
 let hls = null;
 
 let isApplyingRemotePlayback = false;
 
-let currentUsers = [];
 
+/* =========================================================
+   VOICE STATE
+========================================================= */
 
 /*
-  Mic:
-  فقط مشخص می‌کند که صدای خودمان
-  برای دیگران ارسال شود یا نه.
+  اگر false باشد هیچ صدایی از میکروفون
+  برای دیگران ارسال نمی‌شود.
 */
 
 let microphoneEnabled = false;
 
-let localStream = null;
-
 
 /*
-  Speaker:
-  فقط صدای دریافتی از دیگران را
-  برای خودمان کنترل می‌کند.
+  صدای دیگران را می‌توانیم با اسپیکر
+  روشن/خاموش کنیم.
 */
 
 let speakerEnabled = true;
 
 
 /*
-  برای هر کاربر یک PeerConnection داریم.
+  میکروفون خود کاربر.
 */
 
-const peerConnections =
-  new Map();
+let localMicrophoneStream = null;
 
 
 /*
-  ICEهایی که زودتر از RemoteDescription
-  برسند اینجا نگه داشته می‌شوند.
+  اطلاعات Peerها.
 */
 
-const pendingIce =
-  new Map();
+const peers = new Map();
 
 
 /*
-  جلوگیری از ساخت چند Peer همزمان.
+  Remote audio elements.
 */
 
-const creatingPeers =
-  new Map();
+const remoteAudios = new Map();
 
 
 /* =========================================================
@@ -993,204 +957,121 @@ const creatingPeers =
 ========================================================= */
 
 const loginScreen =
-  document.getElementById(
-    "loginScreen"
-  );
+  document.getElementById("loginScreen");
 
 const app =
-  document.getElementById(
-    "app"
-  );
+  document.getElementById("app");
 
 const nameInput =
-  document.getElementById(
-    "nameInput"
-  );
+  document.getElementById("nameInput");
 
 const roomInput =
-  document.getElementById(
-    "roomInput"
-  );
+  document.getElementById("roomInput");
 
 const hostCheckbox =
-  document.getElementById(
-    "hostCheckbox"
-  );
+  document.getElementById("hostCheckbox");
 
 const joinBtn =
-  document.getElementById(
-    "joinBtn"
-  );
+  document.getElementById("joinBtn");
 
 const loginError =
-  document.getElementById(
-    "loginError"
-  );
+  document.getElementById("loginError");
 
 const roomBadge =
-  document.getElementById(
-    "roomBadge"
-  );
+  document.getElementById("roomBadge");
 
 const roleBadge =
-  document.getElementById(
-    "roleBadge"
-  );
-
-const sourceBtn =
-  document.getElementById(
-    "sourceBtn"
-  );
-
-const voiceBtn =
-  document.getElementById(
-    "voiceBtn"
-  );
+  document.getElementById("roleBadge");
 
 const speakerBtn =
-  document.getElementById(
-    "speakerBtn"
-  );
+  document.getElementById("speakerBtn");
+
+const voiceBtn =
+  document.getElementById("voiceBtn");
+
+const sourceBtn =
+  document.getElementById("sourceBtn");
 
 const fullscreenBtn =
-  document.getElementById(
-    "fullscreenBtn"
-  );
-
-const videoSection =
-  document.getElementById(
-    "videoSection"
-  );
+  document.getElementById("fullscreenBtn");
 
 const video =
-  document.getElementById(
-    "video"
-  );
+  document.getElementById("video");
 
 const videoMessage =
-  document.getElementById(
-    "videoMessage"
-  );
+  document.getElementById("videoMessage");
 
 const playOverlay =
-  document.getElementById(
-    "playOverlay"
-  );
+  document.getElementById("playOverlay");
 
 const manualPlayBtn =
-  document.getElementById(
-    "manualPlayBtn"
-  );
+  document.getElementById("manualPlayBtn");
 
 const playBtn =
-  document.getElementById(
-    "playBtn"
-  );
+  document.getElementById("playBtn");
 
 const progress =
-  document.getElementById(
-    "progress"
-  );
+  document.getElementById("progress");
 
 const timeLabel =
-  document.getElementById(
-    "timeLabel"
-  );
+  document.getElementById("timeLabel");
 
 const users =
-  document.getElementById(
-    "users"
-  );
+  document.getElementById("users");
 
 const userCount =
-  document.getElementById(
-    "userCount"
-  );
+  document.getElementById("userCount");
 
 const messages =
-  document.getElementById(
-    "messages"
-  );
+  document.getElementById("messages");
 
 const chatForm =
-  document.getElementById(
-    "chatForm"
-  );
+  document.getElementById("chatForm");
 
 const chatInput =
-  document.getElementById(
-    "chatInput"
-  );
+  document.getElementById("chatInput");
 
 const sourcePanel =
-  document.getElementById(
-    "sourcePanel"
-  );
+  document.getElementById("sourcePanel");
 
 const closeSource =
-  document.getElementById(
-    "closeSource"
-  );
+  document.getElementById("closeSource");
 
 const uploadTab =
-  document.getElementById(
-    "uploadTab"
-  );
+  document.getElementById("uploadTab");
 
 const linkTab =
-  document.getElementById(
-    "linkTab"
-  );
+  document.getElementById("linkTab");
 
 const uploadContent =
-  document.getElementById(
-    "uploadContent"
-  );
+  document.getElementById("uploadContent");
 
 const linkContent =
-  document.getElementById(
-    "linkContent"
-  );
+  document.getElementById("linkContent");
 
 const videoFile =
-  document.getElementById(
-    "videoFile"
-  );
+  document.getElementById("videoFile");
 
 const uploadBtn =
-  document.getElementById(
-    "uploadBtn"
-  );
+  document.getElementById("uploadBtn");
 
 const linkBtn =
-  document.getElementById(
-    "linkBtn"
-  );
+  document.getElementById("linkBtn");
 
 const videoUrl =
-  document.getElementById(
-    "videoUrl"
-  );
+  document.getElementById("videoUrl");
 
 const uploadProgressWrap =
-  document.getElementById(
-    "uploadProgressWrap"
-  );
+  document.getElementById("uploadProgressWrap");
 
 const uploadProgress =
-  document.getElementById(
-    "uploadProgress"
-  );
+  document.getElementById("uploadProgress");
 
 const uploadStatus =
-  document.getElementById(
-    "uploadStatus"
-  );
+  document.getElementById("uploadStatus");
 
 const toast =
-  document.getElementById(
-    "toast"
-  );
+  document.getElementById("toast");
 
 
 /* =========================================================
@@ -1199,25 +1080,19 @@ const toast =
 
 let toastTimer = null;
 
-function showToast(text) {
+function showToast(text){
 
   toast.textContent =
     text;
 
-  toast.classList.add(
-    "show"
-  );
+  toast.classList.add("show");
 
-  clearTimeout(
-    toastTimer
-  );
+  clearTimeout(toastTimer);
 
   toastTimer =
     setTimeout(
       () => {
-        toast.classList.remove(
-          "show"
-        );
+        toast.classList.remove("show");
       },
       3000
     );
@@ -1236,7 +1111,7 @@ joinBtn.addEventListener(
 nameInput.addEventListener(
   "keydown",
   e => {
-    if (e.key === "Enter") {
+    if(e.key === "Enter"){
       joinRoom();
     }
   }
@@ -1245,17 +1120,16 @@ nameInput.addEventListener(
 roomInput.addEventListener(
   "keydown",
   e => {
-    if (e.key === "Enter") {
+    if(e.key === "Enter"){
       joinRoom();
     }
   }
 );
 
 
-function joinRoom() {
+function joinRoom(){
 
-  loginError.textContent =
-    "";
+  loginError.textContent = "";
 
   const name =
     nameInput.value.trim();
@@ -1268,7 +1142,7 @@ function joinRoom() {
   const wantsHost =
     hostCheckbox.checked;
 
-  if (!name) {
+  if(!name){
 
     loginError.textContent =
       "نام خود را وارد کنید.";
@@ -1276,7 +1150,7 @@ function joinRoom() {
     return;
   }
 
-  if (!room) {
+  if(!room){
 
     loginError.textContent =
       "کد روم را وارد کنید.";
@@ -1299,19 +1173,13 @@ function joinRoom() {
   socket.emit(
     "join-room",
     {
-      roomCode:
-        room,
-
-      name:
-        name,
-
+      roomCode:room,
+      name:name,
       hostCode:
         wantsHost
           ? FIXED_HOST_CODE
           : "",
-
-      wantsHost:
-        wantsHost
+      wantsHost:wantsHost
     }
   );
 }
@@ -1329,8 +1197,7 @@ socket.on(
       data.role || "guest";
 
     roomCode =
-      data.roomCode ||
-      roomCode;
+      data.roomCode || roomCode;
 
     currentUsers =
       data.users || [];
@@ -1352,7 +1219,7 @@ socket.on(
       currentUsers
     );
 
-    if (data.source) {
+    if(data.source){
 
       currentSource =
         data.source;
@@ -1362,7 +1229,7 @@ socket.on(
       );
     }
 
-    if (data.playback) {
+    if(data.playback){
 
       applyPlayback(
         data.playback
@@ -1376,13 +1243,14 @@ socket.on(
       "ورود به روم";
 
     /*
-      بسیار مهم:
-      بعد از ورود، Voice Connection را
-      حتی بدون روشن کردن میکروفون
-      آماده می‌کنیم.
+      WebRTC اتصال را بلافاصله
+      آماده نمی‌کنیم.
+
+      بعد از اینکه کاربران را گرفتیم،
+      تابع refreshPeers آن را انجام می‌دهد.
     */
 
-    refreshVoicePeers();
+    refreshPeers();
   }
 );
 
@@ -1408,12 +1276,75 @@ socket.on(
 
 
 /* =========================================================
+   USERS
+========================================================= */
+
+socket.on(
+  "room-users",
+  data => {
+
+    currentUsers =
+      data.users || [];
+
+    renderUsers(
+      currentUsers
+    );
+
+    refreshPeers();
+  }
+);
+
+
+function renderUsers(list){
+
+  users.innerHTML =
+    "";
+
+  userCount.textContent =
+    `${list.length}/4`;
+
+  list.forEach(
+    user => {
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        "user-item";
+
+      const name =
+        document.createElement("span");
+
+      name.textContent =
+        user.name;
+
+      const role =
+        document.createElement("span");
+
+      role.className =
+        "user-role";
+
+      role.textContent =
+        user.role === "host"
+          ? "👑 Host"
+          : "Guest";
+
+      row.appendChild(name);
+      row.appendChild(role);
+
+      users.appendChild(row);
+    }
+  );
+}
+
+
+/* =========================================================
    ROLE
 ========================================================= */
 
-function updateRoleUI() {
+function updateRoleUI(){
 
-  if (myRole === "host") {
+  if(myRole === "host"){
 
     roleBadge.textContent =
       "👑 Host";
@@ -1426,7 +1357,7 @@ function updateRoleUI() {
       "hidden"
     );
 
-  } else {
+  }else{
 
     roleBadge.textContent =
       "Guest";
@@ -1442,92 +1373,41 @@ function updateRoleUI() {
 }
 
 
-/* =========================================================
-   USERS
-========================================================= */
-
-socket.on(
-  "room-users",
-  data => {
-
-    currentUsers =
-      data.users || [];
-
-    renderUsers(
-      currentUsers
-    );
-
-    refreshVoicePeers();
-  }
-);
-
-
-function renderUsers(list) {
-
-  users.innerHTML =
-    "";
-
-  userCount.textContent =
-    `${list.length}/4`;
-
-  list.forEach(
-    user => {
-
-      const row =
-        document.createElement(
-          "div"
-        );
-
-      row.className =
-        "user-item";
-
-      const name =
-        document.createElement(
-          "span"
-        );
-
-      name.textContent =
-        user.name;
-
-      const role =
-        document.createElement(
-          "span"
-        );
-
-      role.className =
-        "user-role";
-
-      role.textContent =
-        user.role === "host"
-          ? "👑 Host"
-          : "Guest";
-
-      row.appendChild(
-        name
-      );
-
-      row.appendChild(
-        role
-      );
-
-      users.appendChild(
-        row
-      );
-    }
-  );
-}
-
-
-/* =========================================================
-   HOST CHANGED
-========================================================= */
-
 socket.on(
   "host-changed",
   data => {
 
     const hostId =
       data?.hostId || null;
+
+    if(hostId === socket.id){
+
+      myRole =
+        "host";
+
+      updateRoleUI();
+
+      showToast(
+        "شما Host شدید."
+      );
+
+    }else{
+
+      if(myRole === "host"){
+
+        myRole =
+          "guest";
+
+        updateRoleUI();
+      }
+
+      if(hostId === null){
+
+        showToast(
+          "Host از روم خارج شد."
+        );
+      }
+    }
 
     currentUsers =
       currentUsers.map(
@@ -1539,50 +1419,6 @@ socket.on(
               : "guest"
         })
       );
-
-    if (
-      hostId === socket.id
-    ) {
-
-      myRole =
-        "host";
-
-      updateRoleUI();
-
-      showToast(
-        "شما Host شدید."
-      );
-
-    } else if (
-      hostId === null
-    ) {
-
-      if (
-        myRole === "host"
-      ) {
-
-        myRole =
-          "guest";
-
-        updateRoleUI();
-      }
-
-      showToast(
-        "Host از روم خارج شد."
-      );
-
-    } else {
-
-      if (
-        myRole === "host"
-      ) {
-
-        myRole =
-          "guest";
-
-        updateRoleUI();
-      }
-    }
 
     renderUsers(
       currentUsers
@@ -1615,9 +1451,7 @@ sourceBtn.addEventListener(
   "click",
   () => {
 
-    if (
-      myRole !== "host"
-    ) {
+    if(myRole !== "host"){
       return;
     }
 
@@ -1643,21 +1477,11 @@ uploadTab.addEventListener(
   "click",
   () => {
 
-    uploadTab.classList.add(
-      "active"
-    );
+    uploadTab.classList.add("active");
+    linkTab.classList.remove("active");
 
-    linkTab.classList.remove(
-      "active"
-    );
-
-    uploadContent.classList.remove(
-      "hidden"
-    );
-
-    linkContent.classList.add(
-      "hidden"
-    );
+    uploadContent.classList.remove("hidden");
+    linkContent.classList.add("hidden");
   }
 );
 
@@ -1666,21 +1490,11 @@ linkTab.addEventListener(
   "click",
   () => {
 
-    linkTab.classList.add(
-      "active"
-    );
+    linkTab.classList.add("active");
+    uploadTab.classList.remove("active");
 
-    uploadTab.classList.remove(
-      "active"
-    );
-
-    linkContent.classList.remove(
-      "hidden"
-    );
-
-    uploadContent.classList.add(
-      "hidden"
-    );
+    linkContent.classList.remove("hidden");
+    uploadContent.classList.add("hidden");
   }
 );
 
@@ -1696,7 +1510,7 @@ uploadBtn.addEventListener(
     const file =
       videoFile.files[0];
 
-    if (!file) {
+    if(!file){
 
       showToast(
         "اول یک فایل ویدئویی انتخاب کنید."
@@ -1710,7 +1524,7 @@ uploadBtn.addEventListener(
 );
 
 
-function uploadFile(file) {
+function uploadFile(file){
 
   uploadBtn.disabled =
     true;
@@ -1744,9 +1558,7 @@ function uploadFile(file) {
     "progress",
     event => {
 
-      if (
-        event.lengthComputable
-      ) {
+      if(event.lengthComputable){
 
         const percent =
           event.loaded /
@@ -1768,10 +1580,7 @@ function uploadFile(file) {
       uploadBtn.disabled =
         false;
 
-      if (
-        xhr.status < 200 ||
-        xhr.status >= 300
-      ) {
+      if(xhr.status < 200 || xhr.status >= 300){
 
         uploadStatus.textContent =
           "آپلود ناموفق بود.";
@@ -1785,14 +1594,14 @@ function uploadFile(file) {
 
       let result;
 
-      try {
+      try{
 
         result =
           JSON.parse(
             xhr.responseText
           );
 
-      } catch {
+      }catch{
 
         uploadStatus.textContent =
           "پاسخ سرور نامعتبر است.";
@@ -1800,10 +1609,7 @@ function uploadFile(file) {
         return;
       }
 
-      if (
-        !result.ok ||
-        !result.url
-      ) {
+      if(!result.ok || !result.url){
 
         uploadStatus.textContent =
           result.error ||
@@ -1821,16 +1627,11 @@ function uploadFile(file) {
       socket.emit(
         "set-source",
         {
-          type:
-            "upload",
-
-          url:
-            result.url,
-
+          type:"upload",
+          url:result.url,
           name:
             result.name ||
             file.name,
-
           mime:
             result.mime ||
             file.type
@@ -1872,12 +1673,12 @@ function uploadFile(file) {
 
 linkBtn.addEventListener(
   "click",
-  async () => {
+  () => {
 
     const url =
       videoUrl.value.trim();
 
-    if (!url) {
+    if(!url){
 
       showToast(
         "لینک ویدئو را وارد کنید."
@@ -1886,19 +1687,20 @@ linkBtn.addEventListener(
       return;
     }
 
-    try {
+    try{
 
       const parsed =
         new URL(url);
 
-      if (
+      if(
         parsed.protocol !== "http:" &&
         parsed.protocol !== "https:"
-      ) {
+      ){
+
         throw new Error();
       }
 
-    } catch {
+    }catch{
 
       showToast(
         "لینک معتبر نیست."
@@ -1907,66 +1709,28 @@ linkBtn.addEventListener(
       return;
     }
 
-    const source = {
+    socket.emit(
+      "set-source",
+      {
+        type:"url",
+        url:url,
+        name:"ویدئوی لینک",
+        mime:""
+      }
+    );
 
-      type:
-        "url",
+    videoUrl.value =
+      "";
 
-      url:
-        url,
-
-      name:
-        "ویدئوی لینک",
-
-      mime:
-        ""
-    };
-
-    linkBtn.disabled =
-      true;
-
-    linkBtn.textContent =
-      "در حال بررسی...";
-
-    try {
-
-      await validateSource(
-        source
-      );
-
-      socket.emit(
-        "set-source",
-        source
-      );
-
-      sourcePanel.classList.add(
-        "hidden"
-      );
-
-      videoUrl.value =
-        "";
-
-    } catch (error) {
-
-      showToast(
-        error.message ||
-        "این لینک قابل پخش نیست."
-      );
-
-    } finally {
-
-      linkBtn.disabled =
-        false;
-
-      linkBtn.textContent =
-        "پخش این لینک";
-    }
+    sourcePanel.classList.add(
+      "hidden"
+    );
   }
 );
 
 
 /* =========================================================
-   SOURCE
+   SOURCE RECEIVED
 ========================================================= */
 
 socket.on(
@@ -1983,102 +1747,13 @@ socket.on(
 );
 
 
-async function validateSource(source) {
+function destroyHls(){
 
-  if (
-    source.url
-      .toLowerCase()
-      .includes(".m3u8")
-  ) {
-    return true;
-  }
+  if(hls){
 
-  return new Promise(
-    (resolve, reject) => {
-
-      const test =
-        document.createElement(
-          "video"
-        );
-
-      let finished =
-        false;
-
-      const done =
-        (ok, message) => {
-
-          if (finished) {
-            return;
-          }
-
-          finished =
-            true;
-
-          test.removeAttribute(
-            "src"
-          );
-
-          test.load();
-
-          if (ok) {
-            resolve(true);
-          } else {
-            reject(
-              new Error(
-                message ||
-                "ویدئو قابل پخش نیست."
-              )
-            );
-          }
-        };
-
-      test.preload =
-        "metadata";
-
-      test.muted =
-        true;
-
-      test.onloadedmetadata =
-        () => done(true);
-
-      test.onerror =
-        () =>
-          done(
-            false,
-            "مرورگر نتوانست این ویدئو را باز کند."
-          );
-
-      setTimeout(
-        () => {
-
-          if (!finished) {
-
-            done(
-              false,
-              "بررسی ویدئو زمان زیادی برد."
-            );
-          }
-
-        },
-        12000
-      );
-
-      test.src =
-        source.url;
-
-      test.load();
-    }
-  );
-}
-
-
-function destroyHls() {
-
-  if (hls) {
-
-    try {
+    try{
       hls.destroy();
-    } catch {}
+    }catch{}
 
     hls =
       null;
@@ -2086,9 +1761,9 @@ function destroyHls() {
 }
 
 
-function loadSource(source) {
+function loadSource(source){
 
-  if (!source?.url) {
+  if(!source?.url){
     return;
   }
 
@@ -2109,22 +1784,17 @@ function loadSource(source) {
   videoMessage.textContent =
     "در حال بارگذاری ویدئو...";
 
-  playOverlay.classList.add(
-    "hidden"
-  );
-
   const url =
     source.url;
 
-  if (
-    url.toLowerCase()
-      .includes(".m3u8")
-  ) {
+  if(
+    url.toLowerCase().includes(".m3u8")
+  ){
 
-    if (
+    if(
       window.Hls &&
       Hls.isSupported()
-    ) {
+    ){
 
       hls =
         new Hls();
@@ -2147,11 +1817,11 @@ function loadSource(source) {
         }
       );
 
-    } else if (
+    }else if(
       video.canPlayType(
         "application/vnd.apple.mpegurl"
       )
-    ) {
+    ){
 
       video.src =
         url;
@@ -2160,7 +1830,7 @@ function loadSource(source) {
         "hidden"
       );
 
-    } else {
+    }else{
 
       videoMessage.textContent =
         "مرورگر شما از HLS پشتیبانی نمی‌کند.";
@@ -2168,7 +1838,7 @@ function loadSource(source) {
       return;
     }
 
-  } else {
+  }else{
 
     video.src =
       url;
@@ -2179,14 +1849,6 @@ function loadSource(source) {
   }
 
   video.load();
-
-  video.addEventListener(
-    "loadedmetadata",
-    updateTimeUI,
-    {
-      once: true
-    }
-  );
 }
 
 
@@ -2199,12 +1861,11 @@ playBtn.addEventListener(
   togglePlay
 );
 
-
 manualPlayBtn.addEventListener(
   "click",
   async () => {
 
-    try {
+    try{
 
       await video.play();
 
@@ -2212,41 +1873,35 @@ manualPlayBtn.addEventListener(
         "hidden"
       );
 
-    } catch {}
+    }catch{}
   }
 );
 
 
-async function togglePlay() {
+async function togglePlay(){
 
-  if (
-    video.paused
-  ) {
+  if(video.paused){
 
-    try {
+    try{
 
       await video.play();
 
-      if (
-        myRole === "host"
-      ) {
+      if(myRole === "host"){
         sendPlayback(true);
       }
 
-    } catch {
+    }catch{
 
       playOverlay.classList.remove(
         "hidden"
       );
     }
 
-  } else {
+  }else{
 
     video.pause();
 
-    if (
-      myRole === "host"
-    ) {
+    if(myRole === "host"){
       sendPlayback(false);
     }
   }
@@ -2260,10 +1915,10 @@ video.addEventListener(
     playBtn.textContent =
       "⏸";
 
-    if (
+    if(
       myRole === "host" &&
       !isApplyingRemotePlayback
-    ) {
+    ){
 
       sendPlayback(true);
     }
@@ -2278,10 +1933,10 @@ video.addEventListener(
     playBtn.textContent =
       "▶";
 
-    if (
+    if(
       myRole === "host" &&
       !isApplyingRemotePlayback
-    ) {
+    ){
 
       sendPlayback(false);
     }
@@ -2289,20 +1944,16 @@ video.addEventListener(
 );
 
 
-function sendPlayback(playing) {
+function sendPlayback(playing){
 
-  if (
-    myRole !== "host"
-  ) {
+  if(myRole !== "host"){
     return;
   }
 
   socket.emit(
     "playback",
     {
-      playing:
-        playing,
-
+      playing:playing,
       time:
         video.currentTime
     }
@@ -2314,7 +1965,7 @@ progress.addEventListener(
   "input",
   () => {
 
-    if (!video.duration) {
+    if(!video.duration){
       return;
     }
 
@@ -2332,10 +1983,7 @@ progress.addEventListener(
   "change",
   () => {
 
-    if (
-      myRole === "host"
-    ) {
-
+    if(myRole === "host"){
       sendPlayback(
         !video.paused
       );
@@ -2344,14 +1992,14 @@ progress.addEventListener(
 );
 
 
-function applyPlayback(state) {
+function applyPlayback(state){
 
-  if (
+  if(
     !state ||
     !Number.isFinite(
       Number(state.time)
     )
-  ) {
+  ){
     return;
   }
 
@@ -2361,20 +2009,18 @@ function applyPlayback(state) {
   const target =
     Number(state.time);
 
-  if (
+  if(
     Math.abs(
       video.currentTime -
       target
     ) > .7
-  ) {
+  ){
 
     video.currentTime =
       target;
   }
 
-  if (
-    state.playing
-  ) {
+  if(state.playing){
 
     video.play()
       .then(
@@ -2392,7 +2038,7 @@ function applyPlayback(state) {
         }
       );
 
-  } else {
+  }else{
 
     video.pause();
   }
@@ -2413,11 +2059,11 @@ socket.on(
 );
 
 
-function formatTime(seconds) {
+function formatTime(seconds){
 
-  if (
+  if(
     !Number.isFinite(seconds)
-  ) {
+  ){
     return "00:00";
   }
 
@@ -2440,7 +2086,7 @@ function formatTime(seconds) {
   const s =
     seconds % 60;
 
-  if (h > 0) {
+  if(h > 0){
 
     return (
       String(h).padStart(2,"0") +
@@ -2459,7 +2105,7 @@ function formatTime(seconds) {
 }
 
 
-function updateTimeUI() {
+function updateTimeUI(){
 
   const current =
     video.currentTime || 0;
@@ -2477,6 +2123,12 @@ function updateTimeUI() {
 }
 
 
+video.addEventListener(
+  "timeupdate",
+  updateTimeUI
+);
+
+
 /* =========================================================
    CHAT
 ========================================================= */
@@ -2490,7 +2142,7 @@ chatForm.addEventListener(
     const text =
       chatInput.value.trim();
 
-    if (!text) {
+    if(!text){
       return;
     }
 
@@ -2510,17 +2162,13 @@ socket.on(
   message => {
 
     const wrapper =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
     wrapper.className =
       "message";
 
     const name =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
     name.className =
       "message-name";
@@ -2530,9 +2178,7 @@ socket.on(
       "کاربر";
 
     const text =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
     text.className =
       "message-text";
@@ -2540,13 +2186,8 @@ socket.on(
     text.textContent =
       message.text || "";
 
-    wrapper.appendChild(
-      name
-    );
-
-    wrapper.appendChild(
-      text
-    );
+    wrapper.appendChild(name);
+    wrapper.appendChild(text);
 
     messages.appendChild(
       wrapper
@@ -2566,20 +2207,20 @@ fullscreenBtn.addEventListener(
   "click",
   async () => {
 
-    try {
+    try{
 
-      if (
-        document.fullscreenElement
-      ) {
+      if(document.fullscreenElement){
 
         await document.exitFullscreen();
 
-      } else {
+      }else{
 
-        await videoSection.requestFullscreen();
+        await document
+          .getElementById("videoSection")
+          .requestFullscreen();
       }
 
-    } catch {}
+    }catch{}
   }
 );
 
@@ -2588,31 +2229,16 @@ fullscreenBtn.addEventListener(
    SPEAKER
 ========================================================= */
 
-/*
-  این دکمه فقط صدای دریافتی از دیگران
-  را کنترل می‌کند.
-
-  صدای ویدئو همچنان مستقل است.
-*/
-
 speakerBtn.addEventListener(
   "click",
-  toggleSpeaker
-);
+  () => {
 
+    speakerEnabled =
+      !speakerEnabled;
 
-function toggleSpeaker() {
+    updateSpeakerUI();
 
-  speakerEnabled =
-    !speakerEnabled;
-
-  updateSpeakerUI();
-
-  document
-    .querySelectorAll(
-      ".remote-audio"
-    )
-    .forEach(
+    remoteAudios.forEach(
       audio => {
 
         audio.muted =
@@ -2622,18 +2248,30 @@ function toggleSpeaker() {
           speakerEnabled
             ? 1
             : 0;
+
+        if(
+          speakerEnabled &&
+          audio.srcObject
+        ){
+
+          audio.play()
+            .catch(
+              () => {}
+            );
+        }
       }
     );
 
-  showToast(
-    speakerEnabled
-      ? "صدای دیگران روشن شد."
-      : "صدای دیگران خاموش شد."
-  );
-}
+    showToast(
+      speakerEnabled
+        ? "صدای دیگران روشن شد."
+        : "صدای دیگران خاموش شد."
+    );
+  }
+);
 
 
-function updateSpeakerUI() {
+function updateSpeakerUI(){
 
   speakerBtn.classList.toggle(
     "active",
@@ -2657,52 +2295,56 @@ voiceBtn.addEventListener(
 );
 
 
-async function toggleMicrophone() {
+async function toggleMicrophone(){
 
-  /*
-    خاموش کردن میکروفون
-  */
-
-  if (
-    microphoneEnabled
-  ) {
+  if(microphoneEnabled){
 
     await disableMicrophone();
+
+  }else{
+
+    await enableMicrophone();
+  }
+}
+
+
+async function enableMicrophone(){
+
+  if(
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ){
+
+    showToast(
+      "مرورگر شما از میکروفون پشتیبانی نمی‌کند."
+    );
 
     return;
   }
 
+  try{
 
-  /*
-    روشن کردن میکروفون
-  */
-
-  try {
-
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
-
-      showToast(
-        "مرورگر شما از میکروفون پشتیبانی نمی‌کند."
-      );
-
-      return;
-    }
-
-    localStream =
+    localMicrophoneStream =
       await navigator.mediaDevices.getUserMedia(
         {
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
+          audio:{
+            echoCancellation:true,
+            noiseSuppression:true,
+            autoGainControl:true
           },
-
-          video: false
+          video:false
         }
       );
+
+    const track =
+      localMicrophoneStream
+        .getAudioTracks()[0];
+
+    if(!track){
+      throw new Error(
+        "No microphone track"
+      );
+    }
 
     microphoneEnabled =
       true;
@@ -2711,38 +2353,30 @@ async function toggleMicrophone() {
 
 
     /*
-      نکته مهم:
-      PeerConnectionها از قبل ساخته شده‌اند.
-      بنابراین لازم نیست طرف مقابل میکروفونش را روشن کند.
+      برای تمام Peerهای موجود،
+      Track میکروفون را اضافه یا جایگزین می‌کنیم.
     */
 
-    for (
-      const [
-        remoteId,
-        pc
-      ]
-      of peerConnections
-    ) {
+    for(
+      const peer
+      of peers.values()
+    ){
 
-      const sender =
-        getAudioSender(pc);
-
-      if (sender) {
-
-        const track =
-          localStream.getAudioTracks()[0];
-
-        await sender.replaceTrack(
-          track
-        );
-      }
+      await setLocalAudioTrack(
+        peer,
+        track
+      );
     }
+
+
+    /*
+      اعلام وضعیت به سرور.
+    */
 
     socket.emit(
       "voice-state",
       {
-        enabled:
-          true
+        enabled:true
       }
     );
 
@@ -2750,7 +2384,7 @@ async function toggleMicrophone() {
       "میکروفون روشن شد."
     );
 
-  } catch (error) {
+  }catch(error){
 
     console.error(
       "Microphone error:",
@@ -2760,7 +2394,16 @@ async function toggleMicrophone() {
     microphoneEnabled =
       false;
 
-    localStream =
+    if(localMicrophoneStream){
+
+      localMicrophoneStream
+        .getTracks()
+        .forEach(
+          track => track.stop()
+        );
+    }
+
+    localMicrophoneStream =
       null;
 
     updateMicrophoneUI();
@@ -2772,56 +2415,62 @@ async function toggleMicrophone() {
 }
 
 
-async function disableMicrophone() {
+async function disableMicrophone(){
 
   microphoneEnabled =
     false;
 
+  if(localMicrophoneStream){
+
+    localMicrophoneStream
+      .getTracks()
+      .forEach(
+        track => track.stop()
+      );
+
+    localMicrophoneStream =
+      null;
+  }
+
+
   /*
-    Track را از Sender حذف می‌کنیم.
+    Track ارسال‌شده را حذف می‌کنیم،
     اما PeerConnection را نمی‌بندیم.
-    بنابراین صدای دیگران همچنان دریافت می‌شود.
   */
 
-  for (
-    const pc
-    of peerConnections.values()
-  ) {
+  for(
+    const peer
+    of peers.values()
+  ){
 
     const sender =
-      getAudioSender(pc);
+      peer.pc
+        .getSenders()
+        .find(
+          sender =>
+            sender.track &&
+            sender.track.kind === "audio"
+        );
 
-    if (sender) {
+    if(sender){
 
-      try {
+      try{
+
         await sender.replaceTrack(
           null
         );
-      } catch {}
+
+      }catch{}
     }
   }
 
-  if (localStream) {
-
-    localStream
-      .getTracks()
-      .forEach(
-        track => {
-          track.stop();
-        }
-      );
-
-    localStream =
-      null;
-  }
 
   updateMicrophoneUI();
 
   socket.emit(
     "voice-state",
     {
-      enabled:
-        false
+      enabled:false
     }
   );
 
@@ -2831,7 +2480,7 @@ async function disableMicrophone() {
 }
 
 
-function updateMicrophoneUI() {
+function updateMicrophoneUI(){
 
   voiceBtn.classList.toggle(
     "active",
@@ -2849,44 +2498,357 @@ function updateMicrophoneUI() {
    WEBRTC
 ========================================================= */
 
-function getIceServers() {
-
-  return [
-    {
-      urls:
-        "stun:stun.l.google.com:19302"
-    },
-
-    {
-      urls:
-        "stun:stun1.l.google.com:19302"
-    }
-  ];
-}
-
-
 /*
-  برای جلوگیری از Offer Collision
-  فقط یکی از دو طرف Offer می‌سازد.
+  این نسخه از Perfect Negotiation استفاده می‌کند.
+
+  polite:
+  اگر دو طرف همزمان بخواهند مذاکره کنند،
+  یک طرف Offer را قبول می‌کند و از Collision
+  جلوگیری می‌شود.
 */
 
-function shouldCreateOffer(remoteId) {
+function isPolite(remoteId){
 
   return (
-    String(socket.id) <
+    String(socket.id) >
     String(remoteId)
   );
 }
 
 
-/*
-  Peer برای هر کاربر حتی اگر هیچ‌کس
-  میکروفونش را روشن نکرده باشد ساخته می‌شود.
+function createPeer(remoteId){
 
-  این دقیقاً مشکل قبلی را برطرف می‌کند.
-*/
+  if(peers.has(remoteId)){
+    return peers.get(remoteId);
+  }
 
-async function refreshVoicePeers() {
+  const peer = {
+
+    pc:null,
+
+    remoteId,
+
+    polite:
+      isPolite(remoteId),
+
+    makingOffer:false,
+
+    ignoreOffer:false,
+
+    isSettingRemoteAnswerPending:false
+  };
+
+
+  const pc =
+    new RTCPeerConnection(
+      {
+        iceServers:[
+          {
+            urls:
+              "stun:stun.l.google.com:19302"
+          },
+          {
+            urls:
+              "stun:stun1.l.google.com:19302"
+          }
+        ]
+      }
+    );
+
+
+  peer.pc =
+    pc;
+
+
+  peers.set(
+    remoteId,
+    peer
+  );
+
+
+  /*
+    فقط Receive Audio از ابتدا وجود دارد.
+
+    بنابراین کاربری که میکروفون خاموش دارد
+    هم می‌تواند صدای دیگران را بشنود.
+  */
+
+  const transceiver =
+    pc.addTransceiver(
+      "audio",
+      {
+        direction:"recvonly"
+      }
+    );
+
+  peer.audioTransceiver =
+    transceiver;
+
+
+  /*
+    اگر همین کاربر میکروفونش روشن باشد،
+    Track را اضافه کن.
+  */
+
+  if(
+    microphoneEnabled &&
+    localMicrophoneStream
+  ){
+
+    const track =
+      localMicrophoneStream
+        .getAudioTracks()[0];
+
+    if(track){
+
+      transceiver.direction =
+        "sendrecv";
+
+      transceiver.sender
+        .replaceTrack(track)
+        .catch(
+          error =>
+            console.error(
+              "Initial track error:",
+              error
+            )
+        );
+    }
+  }
+
+
+  /* ICE */
+
+  pc.onicecandidate =
+    event => {
+
+      if(
+        event.candidate
+      ){
+
+        socket.emit(
+          "voice-ice",
+          {
+            target:
+              remoteId,
+
+            candidate:
+              event.candidate
+          }
+        );
+      }
+    };
+
+
+  /*
+    Track دریافتی.
+
+    اینجا هیچ local playback نداریم.
+    فقط صدای remote ساخته می‌شود.
+  */
+
+  pc.ontrack =
+    event => {
+
+      if(
+        event.track.kind !==
+        "audio"
+      ){
+        return;
+      }
+
+      let audio =
+        remoteAudios.get(
+          remoteId
+        );
+
+      if(!audio){
+
+        audio =
+          document.createElement(
+            "audio"
+          );
+
+        audio.autoplay =
+          true;
+
+        audio.playsInline =
+          true;
+
+        audio.setAttribute(
+          "playsinline",
+          ""
+        );
+
+        /*
+          مهم:
+          این audio صدای شخص مقابل است،
+          نه صدای خودمان.
+        */
+
+        audio.className =
+          "remote-audio";
+
+        audio.style.display =
+          "none";
+
+        document.body.appendChild(
+          audio
+        );
+
+        remoteAudios.set(
+          remoteId,
+          audio
+        );
+      }
+
+
+      if(event.streams?.[0]){
+
+        audio.srcObject =
+          event.streams[0];
+
+      }else{
+
+        let stream =
+          audio.srcObject;
+
+        if(!stream){
+
+          stream =
+            new MediaStream();
+
+          audio.srcObject =
+            stream;
+        }
+
+        if(
+          !stream
+            .getAudioTracks()
+            .includes(event.track)
+        ){
+
+          stream.addTrack(
+            event.track
+          );
+        }
+      }
+
+
+      audio.muted =
+        !speakerEnabled;
+
+      audio.volume =
+        speakerEnabled
+          ? 1
+          : 0;
+
+
+      /*
+        تلاش برای شروع پخش.
+      */
+
+      audio.play()
+        .catch(
+          () => {
+            /*
+              روی بعضی موبایل‌ها autoplay
+              صدای WebRTC تا اولین تعامل
+              کاربر مسدود می‌شود.
+            */
+          }
+        );
+    };
+
+
+  /*
+    Perfect Negotiation
+  */
+
+  pc.onnegotiationneeded =
+    async () => {
+
+      try{
+
+        peer.makingOffer =
+          true;
+
+        await pc.setLocalDescription();
+
+        socket.emit(
+          "voice-offer",
+          {
+            target:
+              remoteId,
+
+            offer:
+              pc.localDescription
+          }
+        );
+
+      }catch(error){
+
+        console.error(
+          "Negotiation error:",
+          error
+        );
+
+      }finally{
+
+        peer.makingOffer =
+          false;
+      }
+    };
+
+
+  pc.onconnectionstatechange =
+    () => {
+
+      console.log(
+        "Voice connection",
+        remoteId,
+        pc.connectionState
+      );
+
+
+      if(
+        pc.connectionState ===
+          "failed"
+      ){
+
+        /*
+          یک بار ICE restart.
+        */
+
+        try{
+
+          pc.restartIce();
+
+        }catch{}
+      }
+
+
+      if(
+        pc.connectionState ===
+          "closed"
+      ){
+
+        removePeer(
+          remoteId
+        );
+      }
+    };
+
+
+  return peer;
+}
+
+
+/* =========================================================
+   REFRESH PEERS
+========================================================= */
+
+async function refreshPeers(){
 
   const activeIds =
     new Set(
@@ -2903,33 +2865,28 @@ async function refreshVoicePeers() {
 
 
   /*
-    Peerهای مربوط به کسانی که خارج شده‌اند
-    حذف می‌شوند.
+    Peerهای افراد خارج‌شده را ببند.
   */
 
-  for (
+  for(
     const [
       remoteId,
-      pc
+      peer
     ]
-    of peerConnections
-  ) {
+    of peers
+  ){
 
-    if (
+    if(
       !activeIds.has(
         remoteId
       )
-    ) {
+    ){
 
-      try {
-        pc.close();
-      } catch {}
+      try{
+        peer.pc.close();
+      }catch{}
 
-      peerConnections.delete(
-        remoteId
-      );
-
-      removeRemoteAudio(
+      removePeer(
         remoteId
       );
     }
@@ -2937,419 +2894,121 @@ async function refreshVoicePeers() {
 
 
   /*
-    برای کاربران جدید Peer بساز.
+    برای هر فرد جدید Peer بساز.
   */
 
-  for (
+  for(
     const remoteId
     of activeIds
-  ) {
+  ){
 
-    if (
-      peerConnections.has(
+    if(
+      peers.has(
         remoteId
       )
-    ) {
+    ){
       continue;
     }
 
-    if (
-      creatingPeers.has(
-        remoteId
-      )
-    ) {
-      continue;
-    }
-
-
-    /*
-      فقط یک طرف Offer می‌سازد.
-    */
-
-    if (
-      shouldCreateOffer(
-        remoteId
-      )
-    ) {
-
-      await createPeerConnection(
-        remoteId,
-        true
-      );
-    }
-  }
-}
-
-
-/*
-  ساخت PeerConnection
-*/
-
-async function createPeerConnection(
-  remoteId,
-  makeOffer
-) {
-
-  if (
-    peerConnections.has(
-      remoteId
-    )
-  ) {
-
-    return peerConnections.get(
-      remoteId
-    );
-  }
-
-
-  if (
-    creatingPeers.has(
-      remoteId
-    )
-  ) {
-
-    return creatingPeers.get(
-      remoteId
-    );
-  }
-
-
-  const promise =
-    (async () => {
-
-      const pc =
-        new RTCPeerConnection(
-          {
-            iceServers:
-              getIceServers()
-          }
-        );
-
-
-      peerConnections.set(
-        remoteId,
-        pc
-      );
-
-
-      /*
-        بسیار مهم:
-
-        Audio Transceiver از همان ابتدا ساخته می‌شود.
-
-        بنابراین حتی اگر میکروفون خاموش باشد،
-        کاربر می‌تواند صدای طرف مقابل را دریافت کند.
-      */
-
-      const audioTransceiver =
-        pc.addTransceiver(
-          "audio",
-          {
-            direction:
-              "sendrecv"
-          }
-        );
-
-
-      /*
-        اگر میکروفون روشن است،
-        Track خودمان را اضافه می‌کنیم.
-      */
-
-      if (
-        microphoneEnabled &&
-        localStream
-      ) {
-
-        const track =
-          localStream
-            .getAudioTracks()[0];
-
-        if (track) {
-
-          await audioTransceiver
-            .sender
-            .replaceTrack(
-              track
-            );
-        }
-      }
-
-
-      /*
-        ICE
-      */
-
-      pc.onicecandidate =
-        event => {
-
-          if (
-            event.candidate
-          ) {
-
-            socket.emit(
-              "voice-ice",
-              {
-                target:
-                  remoteId,
-
-                candidate:
-                  event.candidate
-              }
-            );
-          }
-        };
-
-
-      /*
-        صدای دریافتی از کاربر مقابل
-      */
-
-      pc.ontrack =
-        event => {
-
-          if (
-            event.track.kind !==
-            "audio"
-          ) {
-            return;
-          }
-
-          let stream =
-            event.streams &&
-            event.streams[0];
-
-          /*
-            اگر مرورگر stream را
-            در event نداده باشد،
-            یک stream اختصاصی می‌سازیم.
-          */
-
-          if (!stream) {
-
-            stream =
-              new MediaStream(
-                [event.track]
-              );
-          }
-
-
-          let audio =
-            document.getElementById(
-              "remote-audio-" +
-              remoteId
-            );
-
-
-          if (!audio) {
-
-            audio =
-              document.createElement(
-                "audio"
-              );
-
-            audio.id =
-              "remote-audio-" +
-              remoteId;
-
-            audio.className =
-              "remote-audio";
-
-            audio.autoplay =
-              true;
-
-            audio.playsInline =
-              true;
-
-            audio.setAttribute(
-              "playsinline",
-              ""
-            );
-
-            /*
-              این audio فقط صدای
-              طرف مقابل را دارد.
-
-              هیچ local audio ساخته نمی‌شود.
-            */
-
-            audio.style.display =
-              "none";
-
-            document.body.appendChild(
-              audio
-            );
-          }
-
-
-          audio.srcObject =
-            stream;
-
-          audio.muted =
-            !speakerEnabled;
-
-          audio.volume =
-            speakerEnabled
-              ? 1
-              : 0;
-
-
-          /*
-            شروع پخش صدای طرف مقابل
-          */
-
-          audio.play()
-            .catch(
-              error => {
-
-                console.warn(
-                  "Remote audio autoplay blocked:",
-                  error
-                );
-
-                /*
-                  اگر مرورگر موبایل اجازه
-                  autoplay نداد، با اولین
-                  لمس/کلیک دوباره امتحان می‌کنیم.
-                */
-
-                const retry =
-                  () => {
-
-                    audio.muted =
-                      !speakerEnabled;
-
-                    audio.volume =
-                      speakerEnabled
-                        ? 1
-                        : 0;
-
-                    audio.play()
-                      .catch(
-                        () => {}
-                      );
-                  };
-
-                document.addEventListener(
-                  "click",
-                  retry,
-                  {
-                    once: true
-                  }
-                );
-
-                document.addEventListener(
-                  "touchstart",
-                  retry,
-                  {
-                    once: true
-                  }
-                );
-              }
-            );
-        };
-
-
-      /*
-        Connection state
-      */
-
-      pc.onconnectionstatechange =
-        () => {
-
-          console.log(
-            "Voice:",
-            remoteId,
-            pc.connectionState
-          );
-
-
-          if (
-            pc.connectionState ===
-              "failed" ||
-            pc.connectionState ===
-              "closed"
-          ) {
-
-            peerConnections.delete(
-              remoteId
-            );
-
-            removeRemoteAudio(
-              remoteId
-            );
-          }
-        };
-
-
-      /*
-        Offer
-      */
-
-      if (
-        makeOffer
-      ) {
-
-        const offer =
-          await pc.createOffer();
-
-        await pc.setLocalDescription(
-          offer
-        );
-
-        socket.emit(
-          "voice-offer",
-          {
-            target:
-              remoteId,
-
-            offer:
-              pc.localDescription
-          }
-        );
-      }
-
-
-      return pc;
-
-    })();
-
-
-  creatingPeers.set(
-    remoteId,
-    promise
-  );
-
-
-  try {
-
-    return await promise;
-
-  } finally {
-
-    creatingPeers.delete(
+    createPeer(
       remoteId
     );
   }
 }
 
 
-/*
-  پیدا کردن Audio Sender
-*/
+/* =========================================================
+   SET LOCAL AUDIO TRACK
+========================================================= */
 
-function getAudioSender(pc) {
+async function setLocalAudioTrack(
+  peer,
+  track
+){
 
-  const sender =
+  if(!peer || !peer.pc){
+    return;
+  }
+
+  const pc =
+    peer.pc;
+
+
+  /*
+    اول ببین آیا Sender صوتی داریم.
+  */
+
+  let sender =
     pc.getSenders()
       .find(
         s =>
           s.track?.kind ===
-            "audio" ||
-          s.track === null
+          "audio"
       );
 
-  return sender || null;
+
+  /*
+    اگر Sender نداریم،
+    Transceiver صوتی را پیدا کن.
+  */
+
+  if(!sender){
+
+    const transceiver =
+      pc.getTransceivers()
+        .find(
+          t =>
+            t.receiver
+              ?.track
+              ?.kind ===
+              "audio"
+        );
+
+    if(transceiver){
+
+      peer.audioTransceiver =
+        transceiver;
+
+      sender =
+        transceiver.sender;
+    }
+  }
+
+
+  /*
+    اگر هنوز Sender نداریم،
+    یک Track جدید اضافه کن.
+  */
+
+  if(!sender){
+
+    sender =
+      pc.addTrack(
+        track,
+        new MediaStream([
+          track
+        ])
+      );
+
+  }else{
+
+    await sender.replaceTrack(
+      track
+    );
+  }
+
+
+  /*
+    Direction باید sendrecv باشد.
+  */
+
+  if(
+    peer.audioTransceiver
+  ){
+
+    peer.audioTransceiver.direction =
+      "sendrecv";
+  }
 }
 
 
@@ -3361,51 +3020,65 @@ socket.on(
   "voice-offer",
   async data => {
 
-    if (
+    if(
       !data?.from ||
       !data?.offer
-    ) {
+    ){
       return;
     }
 
     const remoteId =
       data.from;
 
-
-    let pc =
-      peerConnections.get(
+    const peer =
+      createPeer(
         remoteId
       );
 
+    const pc =
+      peer.pc;
+
 
     /*
-      حتی اگر میکروفون ما خاموش باشد،
-      Offer را قبول می‌کنیم.
+      Perfect Negotiation:
+      اگر Offer Collision اتفاق افتاد،
+      طرف polite آن را قبول می‌کند.
     */
 
-    if (!pc) {
+    const offerCollision =
+      peer.makingOffer ||
+      pc.signalingState !==
+        "stable";
 
-      pc =
-        await createPeerConnection(
-          remoteId,
-          false
-        );
+
+    peer.ignoreOffer =
+      !peer.polite &&
+      offerCollision;
+
+
+    if(peer.ignoreOffer){
+
+      console.log(
+        "Ignoring offer collision from",
+        remoteId
+      );
+
+      return;
     }
 
 
-    try {
+    try{
 
-      if (
-        pc.signalingState !==
-        "stable"
-      ) {
+      if(
+        offerCollision &&
+        peer.polite
+      ){
 
-        console.warn(
-          "Offer ignored:",
-          pc.signalingState
+        await pc.setLocalDescription(
+          {
+            type:"rollback"
+          }
         );
-
-        return;
       }
 
 
@@ -3416,15 +3089,8 @@ socket.on(
       );
 
 
-      await flushPendingIce(
-        remoteId,
-        pc
-      );
-
-
       const answer =
         await pc.createAnswer();
-
 
       await pc.setLocalDescription(
         answer
@@ -3442,10 +3108,10 @@ socket.on(
         }
       );
 
-    } catch (error) {
+    }catch(error){
 
       console.error(
-        "Voice offer error:",
+        "Offer handling error:",
         error
       );
     }
@@ -3461,58 +3127,34 @@ socket.on(
   "voice-answer",
   async data => {
 
-    if (
+    if(
       !data?.from ||
       !data?.answer
-    ) {
+    ){
       return;
     }
 
-    const remoteId =
-      data.from;
-
-    const pc =
-      peerConnections.get(
-        remoteId
+    const peer =
+      peers.get(
+        data.from
       );
 
-    if (!pc) {
+    if(!peer){
       return;
     }
 
+    try{
 
-    try {
-
-      if (
-        pc.signalingState !==
-        "have-local-offer"
-      ) {
-
-        console.warn(
-          "Answer ignored:",
-          pc.signalingState
-        );
-
-        return;
-      }
-
-
-      await pc.setRemoteDescription(
+      await peer.pc.setRemoteDescription(
         new RTCSessionDescription(
           data.answer
         )
       );
 
-
-      await flushPendingIce(
-        remoteId,
-        pc
-      );
-
-    } catch (error) {
+    }catch(error){
 
       console.error(
-        "Voice answer error:",
+        "Answer error:",
         error
       );
     }
@@ -3528,91 +3170,37 @@ socket.on(
   "voice-ice",
   async data => {
 
-    if (
+    if(
       !data?.from ||
       !data?.candidate
-    ) {
+    ){
       return;
     }
 
-    const remoteId =
-      data.from;
-
-    const pc =
-      peerConnections.get(
-        remoteId
+    const peer =
+      peers.get(
+        data.from
       );
 
-
-    /*
-      اگر Peer هنوز ساخته نشده،
-      Candidate را ذخیره کن.
-    */
-
-    if (!pc) {
-
-      if (
-        !pendingIce.has(
-          remoteId
-        )
-      ) {
-
-        pendingIce.set(
-          remoteId,
-          []
-        );
-      }
-
-      pendingIce
-        .get(remoteId)
-        .push(
-          data.candidate
-        );
-
+    if(!peer){
       return;
     }
 
+    try{
 
-    /*
-      اگر RemoteDescription هنوز
-      ثبت نشده، صبر کن.
-    */
-
-    if (
-      !pc.remoteDescription
-    ) {
-
-      if (
-        !pendingIce.has(
-          remoteId
-        )
-      ) {
-
-        pendingIce.set(
-          remoteId,
-          []
-        );
+      if(
+        peer.ignoreOffer
+      ){
+        return;
       }
 
-      pendingIce
-        .get(remoteId)
-        .push(
-          data.candidate
-        );
-
-      return;
-    }
-
-
-    try {
-
-      await pc.addIceCandidate(
+      await peer.pc.addIceCandidate(
         new RTCIceCandidate(
           data.candidate
         )
       );
 
-    } catch (error) {
+    }catch(error){
 
       console.error(
         "ICE error:",
@@ -3621,52 +3209,6 @@ socket.on(
     }
   }
 );
-
-
-async function flushPendingIce(
-  remoteId,
-  pc
-) {
-
-  const list =
-    pendingIce.get(
-      remoteId
-    );
-
-  if (
-    !list ||
-    list.length === 0
-  ) {
-    return;
-  }
-
-  pendingIce.delete(
-    remoteId
-  );
-
-
-  for (
-    const candidate
-    of list
-  ) {
-
-    try {
-
-      await pc.addIceCandidate(
-        new RTCIceCandidate(
-          candidate
-        )
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Pending ICE error:",
-        error
-      );
-    }
-  }
-}
 
 
 /* =========================================================
@@ -3678,8 +3220,9 @@ socket.on(
   data => {
 
     /*
-      این event فقط اطلاع‌رسانی است.
-      اتصال WebRTC از قبل برقرار است.
+      این event فقط برای نمایش وضعیت است.
+      پخش صدا وابسته به روشن بودن میکروفون
+      طرف مقابل نیست.
     */
 
     console.log(
@@ -3692,6 +3235,58 @@ socket.on(
 
 
 /* =========================================================
+   REMOVE PEER
+========================================================= */
+
+function removePeer(
+  remoteId
+){
+
+  const peer =
+    peers.get(
+      remoteId
+    );
+
+  if(peer){
+
+    try{
+      peer.pc.close();
+    }catch{}
+
+    peers.delete(
+      remoteId
+    );
+  }
+
+
+  const audio =
+    remoteAudios.get(
+      remoteId
+    );
+
+  if(audio){
+
+    try{
+      audio.pause();
+    }catch{}
+
+    try{
+      audio.srcObject =
+        null;
+    }catch{}
+
+    try{
+      audio.remove();
+    }catch{}
+
+    remoteAudios.delete(
+      remoteId
+    );
+  }
+}
+
+
+/* =========================================================
    DISCONNECT
 ========================================================= */
 
@@ -3699,19 +3294,28 @@ socket.on(
   "disconnect",
   () => {
 
-    closeAllPeers();
+    for(
+      const [
+        remoteId
+      ]
+      of peers
+    ){
 
-    if (localStream) {
+      removePeer(
+        remoteId
+      );
+    }
 
-      localStream
+    if(localMicrophoneStream){
+
+      localMicrophoneStream
         .getTracks()
         .forEach(
-          track => {
-            track.stop();
-          }
+          track =>
+            track.stop()
         );
 
-      localStream =
+      localMicrophoneStream =
         null;
     }
 
@@ -3724,114 +3328,50 @@ socket.on(
 
 
 /* =========================================================
-   REMOVE REMOTE AUDIO
-========================================================= */
-
-function removeRemoteAudio(
-  remoteId
-) {
-
-  const audio =
-    document.getElementById(
-      "remote-audio-" +
-      remoteId
-    );
-
-  if (!audio) {
-    return;
-  }
-
-  try {
-    audio.pause();
-  } catch {}
-
-  try {
-    audio.srcObject =
-      null;
-  } catch {}
-
-  try {
-    audio.remove();
-  } catch {}
-}
-
-
-/* =========================================================
-   CLOSE ALL PEERS
-========================================================= */
-
-function closeAllPeers() {
-
-  for (
-    const [
-      remoteId,
-      pc
-    ]
-    of peerConnections
-  ) {
-
-    try {
-      pc.close();
-    } catch {}
-
-    removeRemoteAudio(
-      remoteId
-    );
-  }
-
-  peerConnections.clear();
-
-  pendingIce.clear();
-
-  creatingPeers.clear();
-}
-
-
-/* =========================================================
    MOBILE AUDIO UNLOCK
 ========================================================= */
 
-function unlockRemoteAudio() {
+function unlockRemoteAudio(){
 
-  document
-    .querySelectorAll(
-      ".remote-audio"
-    )
-    .forEach(
-      audio => {
+  if(!speakerEnabled){
+    return;
+  }
 
-        audio.muted =
-          !speakerEnabled;
+  remoteAudios.forEach(
+    audio => {
 
-        audio.volume =
-          speakerEnabled
-            ? 1
-            : 0;
+      audio.muted =
+        false;
 
-        if (
-          speakerEnabled &&
-          audio.srcObject
-        ) {
+      audio.volume =
+        1;
 
-          audio.play()
-            .catch(
-              () => {}
-            );
-        }
+      if(audio.srcObject){
+
+        audio.play()
+          .catch(
+            () => {}
+          );
       }
-    );
+    }
+  );
 }
 
 
 document.addEventListener(
   "click",
-  unlockRemoteAudio
+  unlockRemoteAudio,
+  {
+    passive:true
+  }
 );
-
 
 document.addEventListener(
   "touchstart",
-  unlockRemoteAudio
+  unlockRemoteAudio,
+  {
+    passive:true
+  }
 );
 
 
