@@ -1,0 +1,2825 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <title>باهم ببینیم</title>
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2314141a'/%3E%3Crect x='18' y='22' width='64' height='56' rx='12' fill='%236c63ff'/%3E%3Cpath d='M43 37L66 50L43 63Z' fill='white'/%3E%3C/svg%3E"
+  >
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- HLS -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #08080c;
+      color: #fff;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font-family: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* =========================
+       INTRO
+    ========================= */
+
+    #intro {
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+
+      background:
+        radial-gradient(
+          circle at center,
+          #20202c 0%,
+          #0b0b10 58%,
+          #07070a 100%
+        );
+    }
+
+    .intro-logo {
+      width: 94px;
+      height: 94px;
+
+      border-radius: 28px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #6c63ff;
+
+      box-shadow:
+        0 20px 70px rgba(108, 99, 255, .35);
+
+      animation: introLogo .7s ease;
+    }
+
+    .intro-logo::after {
+      content: "";
+      width: 0;
+      height: 0;
+
+      border-top: 18px solid transparent;
+      border-bottom: 18px solid transparent;
+      border-left: 30px solid white;
+
+      margin-left: 7px;
+    }
+
+    .intro-title {
+      margin-top: 22px;
+
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .intro-subtitle {
+      margin-top: 8px;
+
+      color: #92929d;
+      font-size: 14px;
+    }
+
+    @keyframes introLogo {
+      from {
+        opacity: 0;
+        transform: scale(.7);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    #login {
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: min(430px, 100%);
+
+      background: #15151c;
+
+      border: 1px solid #292932;
+
+      border-radius: 24px;
+
+      padding: 28px;
+
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.45);
+    }
+
+    .login-card h1 {
+      margin: 0 0 8px;
+
+      font-size: 25px;
+    }
+
+    .login-card p {
+      margin: 0 0 24px;
+
+      color: #9999a5;
+
+      font-size: 14px;
+
+      line-height: 1.8;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: #bdbdc7;
+
+      font-size: 13px;
+    }
+
+    .field input {
+      width: 100%;
+      height: 52px;
+
+      padding: 0 15px;
+
+      border-radius: 14px;
+
+      border: 1px solid #30303a;
+
+      outline: none;
+
+      background: #0d0d12;
+
+      color: white;
+    }
+
+    .field input:focus {
+      border-color: #6c63ff;
+    }
+
+    .primary {
+      width: 100%;
+      height: 52px;
+
+      margin-top: 8px;
+
+      border-radius: 14px;
+
+      background: #6c63ff;
+
+      color: white;
+
+      font-weight: 800;
+    }
+
+    .primary:disabled {
+      opacity: .55;
+      cursor: default;
+    }
+
+    .login-error {
+      min-height: 20px;
+
+      margin-top: 12px;
+
+      color: #ff7777;
+
+      font-size: 13px;
+    }
+
+    /* =========================
+       ROOM
+    ========================= */
+
+    #room {
+      flex-direction: column;
+
+      background: #08080c;
+    }
+
+    .topbar {
+      height: 62px;
+      min-height: 62px;
+
+      padding: 0 14px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      background: #121218;
+
+      border-bottom: 1px solid #282830;
+    }
+
+    .brand {
+      min-width: 0;
+
+      display: flex;
+      align-items: center;
+
+      gap: 9px;
+    }
+
+    .mini-logo {
+      width: 36px;
+      height: 36px;
+
+      flex-shrink: 0;
+
+      border-radius: 11px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #6c63ff;
+    }
+
+    .mini-logo::after {
+      content: "";
+
+      width: 0;
+      height: 0;
+
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 13px solid white;
+
+      margin-left: 3px;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .room-info {
+      margin-top: 3px;
+
+      color: #858590;
+
+      font-size: 11px;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+    }
+
+    .role-badge {
+      padding: 7px 11px;
+
+      border-radius: 10px;
+
+      background: #23232d;
+
+      color: #bcb8ff;
+
+      font-size: 11px;
+
+      white-space: nowrap;
+    }
+
+    .content {
+      flex: 1;
+
+      min-height: 0;
+
+      display: flex;
+
+      overflow: hidden;
+    }
+
+    /* =========================
+       VIDEO
+    ========================= */
+
+    .video-section {
+      flex: 1;
+
+      min-width: 0;
+      min-height: 0;
+
+      display: flex;
+      flex-direction: column;
+
+      background: #000;
+    }
+
+    .video-stage {
+      flex: 1;
+
+      min-height: 0;
+
+      position: relative;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #000;
+
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+
+      display: block;
+
+      background: #000;
+
+      object-fit: contain;
+    }
+
+    .empty-state {
+      position: absolute;
+
+      inset: 0;
+
+      z-index: 2;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      flex-direction: column;
+
+      padding: 25px;
+
+      text-align: center;
+
+      background:
+        radial-gradient(
+          circle at center,
+          #17171f 0%,
+          #050507 70%
+        );
+    }
+
+    .empty-icon {
+      width: 72px;
+      height: 72px;
+
+      margin-bottom: 17px;
+
+      border-radius: 22px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #1d1d26;
+
+      font-size: 30px;
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .empty-text {
+      max-width: 400px;
+
+      margin-top: 8px;
+
+      color: #858590;
+
+      font-size: 13px;
+
+      line-height: 1.8;
+    }
+
+    /* =========================
+       SOURCE PANEL
+    ========================= */
+
+    .source-panel {
+      position: absolute;
+
+      z-index: 10;
+
+      left: 50%;
+      top: 50%;
+
+      transform: translate(-50%, -50%);
+
+      width: min(470px, calc(100% - 30px));
+
+      max-height: calc(100% - 30px);
+
+      overflow-y: auto;
+
+      padding: 20px;
+
+      border: 1px solid #30303a;
+
+      border-radius: 20px;
+
+      background: rgba(18,18,24,.98);
+
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.6);
+    }
+
+    .source-panel h2 {
+      margin: 0 0 6px;
+
+      font-size: 19px;
+    }
+
+    .source-panel p {
+      margin: 0 0 17px;
+
+      color: #888894;
+
+      font-size: 12px;
+
+      line-height: 1.7;
+    }
+
+    .source-tabs {
+      display: flex;
+
+      gap: 7px;
+
+      margin-bottom: 13px;
+    }
+
+    .source-tab {
+      flex: 1;
+
+      padding: 10px 7px;
+
+      border-radius: 11px;
+
+      background: #23232c;
+
+      color: #aaaab5;
+
+      font-size: 12px;
+    }
+
+    .source-tab.active {
+      background: #6c63ff;
+
+      color: white;
+    }
+
+    .file-label {
+      width: 100%;
+      min-height: 48px;
+
+      padding: 10px;
+
+      border: 1px dashed #444450;
+
+      border-radius: 12px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #0c0c11;
+
+      color: #aaaab5;
+
+      font-size: 13px;
+
+      text-align: center;
+
+      cursor: pointer;
+    }
+
+    .file-label input {
+      display: none;
+    }
+
+    .source-input {
+      width: 100%;
+      height: 48px;
+
+      padding: 0 12px;
+
+      border: 1px solid #30303a;
+
+      border-radius: 12px;
+
+      outline: none;
+
+      background: #0c0c11;
+
+      color: white;
+
+      direction: ltr;
+
+      text-align: left;
+    }
+
+    .source-input:focus {
+      border-color: #6c63ff;
+    }
+
+    .source-submit {
+      width: 100%;
+      height: 48px;
+
+      margin-top: 12px;
+
+      border-radius: 12px;
+
+      background: #6c63ff;
+
+      color: white;
+
+      font-weight: 800;
+    }
+
+    .source-submit:disabled {
+      opacity: .55;
+    }
+
+    .source-status {
+      min-height: 18px;
+
+      margin-top: 9px;
+
+      color: #8f8f9b;
+
+      font-size: 11px;
+
+      text-align: center;
+    }
+
+    /* =========================
+       CONTROLS
+    ========================= */
+
+    .controls {
+      padding: 8px 11px 10px;
+
+      background: #101015;
+
+      border-top: 1px solid #23232b;
+    }
+
+    .progress-row {
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      direction: ltr;
+    }
+
+    .time {
+      width: 42px;
+
+      color: #9999a5;
+
+      font-size: 10px;
+
+      text-align: center;
+    }
+
+    .progress {
+      flex: 1;
+
+      height: 4px;
+
+      accent-color: #6c63ff;
+    }
+
+    .control-buttons {
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 8px;
+
+      margin-top: 7px;
+    }
+
+    .control-button {
+      width: 40px;
+      height: 34px;
+
+      border-radius: 10px;
+
+      background: #202027;
+
+      color: #ddd;
+
+      font-size: 13px;
+    }
+
+    .control-button.play {
+      width: 46px;
+
+      background: #6c63ff;
+
+      color: white;
+    }
+
+    .control-button:disabled,
+    .progress:disabled {
+      opacity: .35;
+
+      cursor: default;
+    }
+
+    /* =========================
+       CHAT
+    ========================= */
+
+    .chat {
+      width: 340px;
+      min-width: 280px;
+
+      display: flex;
+      flex-direction: column;
+
+      background: #111116;
+
+      border-right: 1px solid #25252d;
+    }
+
+    .chat-header {
+      height: 53px;
+      min-height: 53px;
+
+      padding: 0 14px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      border-bottom: 1px solid #282831;
+    }
+
+    .chat-title {
+      font-size: 14px;
+
+      font-weight: 800;
+    }
+
+    .people {
+      color: #7e7e89;
+
+      font-size: 11px;
+    }
+
+    .messages {
+      flex: 1;
+
+      min-height: 0;
+
+      overflow-y: auto;
+
+      padding: 13px;
+    }
+
+    .message {
+      margin-bottom: 12px;
+    }
+
+    .message-name {
+      margin-bottom: 4px;
+
+      color: #8e88ff;
+
+      font-size: 11px;
+    }
+
+    .message-bubble {
+      display: inline-block;
+
+      max-width: 90%;
+
+      padding: 9px 11px;
+
+      border-radius: 12px;
+
+      background: #202027;
+
+      font-size: 12px;
+
+      line-height: 1.7;
+
+      word-break: break-word;
+    }
+
+    .message.self .message-bubble {
+      background: #4f49b8;
+    }
+
+    .chat-form {
+      padding: 10px;
+
+      display: flex;
+
+      gap: 7px;
+
+      border-top: 1px solid #282831;
+    }
+
+    .chat-input {
+      flex: 1;
+
+      min-width: 0;
+
+      height: 43px;
+
+      padding: 0 11px;
+
+      border: 1px solid #30303a;
+
+      border-radius: 12px;
+
+      outline: none;
+
+      background: #0b0b0f;
+
+      color: white;
+    }
+
+    .chat-send {
+      width: 43px;
+      height: 43px;
+
+      flex-shrink: 0;
+
+      border-radius: 12px;
+
+      background: #6c63ff;
+
+      color: white;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 750px) {
+
+      .content {
+        flex-direction: column;
+      }
+
+      .video-section {
+        min-height: 55%;
+      }
+
+      .chat {
+        width: 100%;
+        min-width: 0;
+
+        height: 45%;
+
+        border-right: 0;
+        border-top: 1px solid #25252d;
+      }
+
+      .chat-header {
+        height: 43px;
+        min-height: 43px;
+      }
+
+      .messages {
+        padding: 9px;
+      }
+
+      .chat-form {
+        padding: 7px;
+      }
+    }
+
+    /* =========================
+       LANDSCAPE
+    ========================= */
+
+    @media (
+      orientation: landscape
+    ) and (max-height: 600px) {
+
+      .content {
+        flex-direction: row;
+      }
+
+      .video-section {
+        width: 68%;
+        min-height: 0;
+      }
+
+      .chat {
+        width: 32%;
+        min-width: 230px;
+
+        height: auto;
+
+        border-right: 1px solid #25252d;
+        border-top: 0;
+      }
+
+      .chat-header {
+        height: 45px;
+        min-height: 45px;
+      }
+
+      .messages {
+        padding: 8px;
+      }
+
+      .chat-form {
+        padding: 7px;
+      }
+
+      .controls {
+        padding: 5px 8px 6px;
+      }
+
+      .control-buttons {
+        margin-top: 4px;
+      }
+
+      .control-button {
+        width: 34px;
+        height: 29px;
+      }
+
+      .control-button.play {
+        width: 39px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       INTRO
+  ========================= -->
+
+  <section
+    id="intro"
+    class="screen active"
+  >
+
+    <div class="intro-logo"></div>
+
+    <div class="intro-title">
+      باهم ببینیم
+    </div>
+
+    <div class="intro-subtitle">
+      همزمان فیلم ببینید و چت کنید
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       LOGIN
+  ========================= -->
+
+  <section
+    id="login"
+    class="screen"
+  >
+
+    <div class="login-card">
+
+      <h1>
+        ورود به روم
+      </h1>
+
+      <p>
+        اسمت و کد روم رو وارد کن تا وارد تماشای مشترک بشی.
+      </p>
+
+      <div class="field">
+
+        <label>
+          نام
+        </label>
+
+        <input
+          id="nameInput"
+          type="text"
+          maxlength="30"
+          placeholder="مثلاً Taha"
+          autocomplete="off"
+        >
+
+      </div>
+
+      <div class="field">
+
+        <label>
+          کد روم
+        </label>
+
+        <input
+          id="roomInput"
+          type="text"
+          maxlength="30"
+          placeholder="مثلاً ABC123"
+          autocomplete="off"
+          dir="ltr"
+        >
+
+      </div>
+
+      <button
+        id="joinButton"
+        class="primary"
+      >
+        ورود به روم
+      </button>
+
+      <div
+        id="loginError"
+        class="login-error"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       ROOM
+  ========================= -->
+
+  <section
+    id="room"
+    class="screen"
+  >
+
+    <header class="topbar">
+
+      <div class="brand">
+
+        <div class="mini-logo"></div>
+
+        <div class="brand-text">
+
+          <div class="brand-title">
+            باهم ببینیم
+          </div>
+
+          <div
+            id="roomInfo"
+            class="room-info"
+          ></div>
+
+        </div>
+
+      </div>
+
+      <div
+        id="roleBadge"
+        class="role-badge"
+      >
+        مهمان
+      </div>
+
+    </header>
+
+
+    <main class="content">
+
+      <!-- VIDEO -->
+
+      <section class="video-section">
+
+        <div
+          id="videoStage"
+          class="video-stage"
+        >
+
+          <div
+            id="emptyState"
+            class="empty-state"
+          >
+
+            <div class="empty-icon">
+              🎬
+            </div>
+
+            <div
+              id="emptyTitle"
+              class="empty-title"
+            >
+              منتظر ویدئو
+            </div>
+
+            <div
+              id="emptyText"
+              class="empty-text"
+            >
+              میزبان هنوز ویدئویی انتخاب نکرده است.
+            </div>
+
+          </div>
+
+
+          <video
+            id="video"
+            playsinline
+            preload="metadata"
+          ></video>
+
+
+          <!-- SOURCE PANEL -->
+
+          <div
+            id="sourcePanel"
+            class="source-panel hidden"
+          >
+
+            <h2>
+              انتخاب ویدئو
+            </h2>
+
+            <p>
+              فقط میزبان می‌تواند ویدئو یا لینک پخش را انتخاب کند.
+            </p>
+
+            <div class="source-tabs">
+
+              <button
+                id="uploadTab"
+                class="source-tab active"
+                type="button"
+              >
+                فایل ویدئویی
+              </button>
+
+              <button
+                id="urlTab"
+                class="source-tab"
+                type="button"
+              >
+                لینک ویدئو
+              </button>
+
+            </div>
+
+
+            <div id="uploadSource">
+
+              <label class="file-label">
+
+                <input
+                  id="fileInput"
+                  type="file"
+                  accept="video/*"
+                >
+
+                انتخاب فایل ویدئویی
+
+              </label>
+
+            </div>
+
+
+            <div
+              id="urlSource"
+              class="hidden"
+            >
+
+              <input
+                id="urlInput"
+                class="source-input"
+                type="url"
+                placeholder="https://example.com/video.mp4"
+                dir="ltr"
+              >
+
+            </div>
+
+
+            <button
+              id="sourceSubmit"
+              class="source-submit"
+              type="button"
+            >
+              شروع پخش
+            </button>
+
+            <div
+              id="sourceStatus"
+              class="source-status"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <!-- CONTROLS -->
+
+        <div class="controls">
+
+          <div class="progress-row">
+
+            <span
+              id="currentTime"
+              class="time"
+            >
+              00:00
+            </span>
+
+            <input
+              id="progress"
+              class="progress"
+              type="range"
+              min="0"
+              max="100"
+              value="0"
+              step="0.1"
+            >
+
+            <span
+              id="duration"
+              class="time"
+            >
+              00:00
+            </span>
+
+          </div>
+
+
+          <div class="control-buttons">
+
+            <button
+              id="back10"
+              class="control-button"
+              type="button"
+            >
+              ↶10
+            </button>
+
+            <button
+              id="playButton"
+              class="control-button play"
+              type="button"
+            >
+              ▶
+            </button>
+
+            <button
+              id="forward10"
+              class="control-button"
+              type="button"
+            >
+              10↷
+            </button>
+
+            <button
+              id="fullscreenButton"
+              class="control-button"
+              type="button"
+            >
+              ⛶
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- CHAT -->
+
+      <aside class="chat">
+
+        <div class="chat-header">
+
+          <div class="chat-title">
+            چت
+          </div>
+
+          <div
+            id="people"
+            class="people"
+          >
+            0 نفر
+          </div>
+
+        </div>
+
+
+        <div
+          id="messages"
+          class="messages"
+        ></div>
+
+
+        <form
+          id="chatForm"
+          class="chat-form"
+        >
+
+          <input
+            id="chatInput"
+            class="chat-input"
+            maxlength="500"
+            placeholder="پیامت رو بنویس..."
+            autocomplete="off"
+          >
+
+          <button
+            class="chat-send"
+            type="submit"
+          >
+            ➤
+          </button>
+
+        </form>
+
+      </aside>
+
+    </main>
+
+  </section>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================= -->
+
+  <script>
+
+    /* ---------------------------------
+       ELEMENTS
+    --------------------------------- */
+
+    const intro =
+      document.getElementById("intro");
+
+    const login =
+      document.getElementById("login");
+
+    const room =
+      document.getElementById("room");
+
+    const nameInput =
+      document.getElementById("nameInput");
+
+    const roomInput =
+      document.getElementById("roomInput");
+
+    const joinButton =
+      document.getElementById("joinButton");
+
+    const loginError =
+      document.getElementById("loginError");
+
+    const roomInfo =
+      document.getElementById("roomInfo");
+
+    const roleBadge =
+      document.getElementById("roleBadge");
+
+    const videoStage =
+      document.getElementById("videoStage");
+
+    const video =
+      document.getElementById("video");
+
+    const emptyState =
+      document.getElementById("emptyState");
+
+    const emptyTitle =
+      document.getElementById("emptyTitle");
+
+    const emptyText =
+      document.getElementById("emptyText");
+
+    const sourcePanel =
+      document.getElementById("sourcePanel");
+
+    const uploadTab =
+      document.getElementById("uploadTab");
+
+    const urlTab =
+      document.getElementById("urlTab");
+
+    const uploadSource =
+      document.getElementById("uploadSource");
+
+    const urlSource =
+      document.getElementById("urlSource");
+
+    const fileInput =
+      document.getElementById("fileInput");
+
+    const urlInput =
+      document.getElementById("urlInput");
+
+    const sourceSubmit =
+      document.getElementById("sourceSubmit");
+
+    const sourceStatus =
+      document.getElementById("sourceStatus");
+
+    const playButton =
+      document.getElementById("playButton");
+
+    const back10 =
+      document.getElementById("back10");
+
+    const forward10 =
+      document.getElementById("forward10");
+
+    const fullscreenButton =
+      document.getElementById("fullscreenButton");
+
+    const progress =
+      document.getElementById("progress");
+
+    const currentTime =
+      document.getElementById("currentTime");
+
+    const duration =
+      document.getElementById("duration");
+
+    const messages =
+      document.getElementById("messages");
+
+    const people =
+      document.getElementById("people");
+
+    const chatForm =
+      document.getElementById("chatForm");
+
+    const chatInput =
+      document.getElementById("chatInput");
+
+
+    /* ---------------------------------
+       STATE
+    --------------------------------- */
+
+    let socket = null;
+
+    let role = null;
+
+    let roomCode = null;
+
+    let myName = null;
+
+    let users = [];
+
+    let currentSource = null;
+
+    let hls = null;
+
+    let sourceMode = "upload";
+
+    let applyingRemote = false;
+
+
+    /* ---------------------------------
+       SCREEN
+    --------------------------------- */
+
+    function showScreen(element) {
+
+      document
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+          screen.classList.remove("active");
+        });
+
+      element.classList.add("active");
+    }
+
+
+    /* ---------------------------------
+       INTRO
+    --------------------------------- */
+
+    setTimeout(() => {
+
+      showScreen(login);
+
+    }, 1200);
+
+
+    /* ---------------------------------
+       SOCKET.IO CHECK
+    --------------------------------- */
+
+    function startSocket() {
+
+      if (
+        typeof window.io !== "function"
+      ) {
+
+        loginError.textContent =
+          "ارتباط با سرور برقرار نشد. لطفاً صفحه را Refresh کن.";
+
+        return false;
+      }
+
+      try {
+
+        socket = window.io({
+          transports: [
+            "websocket",
+            "polling"
+          ]
+        });
+
+        return true;
+
+      } catch (error) {
+
+        console.error(
+          "Socket.IO error:",
+          error
+        );
+
+        loginError.textContent =
+          "خطا در اتصال به سرور.";
+
+        return false;
+      }
+    }
+
+
+    /* ---------------------------------
+       SOCKET CONNECTION
+    --------------------------------- */
+
+    const socketReady =
+      startSocket();
+
+
+    if (socketReady) {
+
+      socket.on(
+        "connect",
+        () => {
+
+          console.log(
+            "Socket connected:",
+            socket.id
+          );
+
+        }
+      );
+
+
+      socket.on(
+        "connect_error",
+        error => {
+
+          console.error(
+            "Socket connection error:",
+            error
+          );
+
+        }
+      );
+
+    }
+
+
+    /* ---------------------------------
+       FORMAT TIME
+    --------------------------------- */
+
+    function formatTime(seconds) {
+
+      if (
+        !Number.isFinite(seconds)
+      ) {
+        return "00:00";
+      }
+
+      seconds =
+        Math.max(
+          0,
+          Math.floor(seconds)
+        );
+
+      const hours =
+        Math.floor(
+          seconds / 3600
+        );
+
+      const minutes =
+        Math.floor(
+          (seconds % 3600) / 60
+        );
+
+      const secs =
+        seconds % 60;
+
+      if (hours > 0) {
+
+        return (
+          String(hours).padStart(2, "0") +
+          ":" +
+          String(minutes).padStart(2, "0") +
+          ":" +
+          String(secs).padStart(2, "0")
+        );
+
+      }
+
+      return (
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(secs).padStart(2, "0")
+      );
+    }
+
+
+    /* ---------------------------------
+       CONTROLS
+    --------------------------------- */
+
+    function updateControls() {
+
+      const host =
+        role === "host";
+
+      const enabled =
+        host && !!currentSource;
+
+      playButton.disabled =
+        !enabled;
+
+      back10.disabled =
+        !enabled;
+
+      forward10.disabled =
+        !enabled;
+
+      progress.disabled =
+        !enabled;
+
+      playButton.textContent =
+        video.paused
+          ? "▶"
+          : "Ⅱ";
+    }
+
+
+    /* ---------------------------------
+       EMPTY STATE
+    --------------------------------- */
+
+    function updateEmptyState() {
+
+      emptyState.classList.remove(
+        "hidden"
+      );
+
+      if (role === "host") {
+
+        emptyTitle.textContent =
+          "ویدئو انتخاب نشده";
+
+        emptyText.textContent =
+          "یک فایل ویدئویی انتخاب کن یا لینک مستقیم ویدئو را وارد کن.";
+
+        sourcePanel.classList.remove(
+          "hidden"
+        );
+
+      } else {
+
+        emptyTitle.textContent =
+          "منتظر میزبان";
+
+        emptyText.textContent =
+          "وقتی میزبان ویدئو را انتخاب کند، پخش برای تو هم فعال می‌شود.";
+
+        sourcePanel.classList.add(
+          "hidden"
+        );
+      }
+
+      updateControls();
+    }
+
+
+    /* ---------------------------------
+       LOAD SOURCE
+    --------------------------------- */
+
+    function loadSource(source) {
+
+      if (
+        !source ||
+        !source.url
+      ) {
+        return;
+      }
+
+      currentSource =
+        source;
+
+      emptyState.classList.add(
+        "hidden"
+      );
+
+      sourcePanel.classList.add(
+        "hidden"
+      );
+
+      if (hls) {
+
+        try {
+          hls.destroy();
+        } catch (_) {}
+
+        hls = null;
+      }
+
+      video.pause();
+
+      video.removeAttribute(
+        "src"
+      );
+
+      video.load();
+
+      const url =
+        String(source.url);
+
+      const mime =
+        String(
+          source.mime || ""
+        ).toLowerCase();
+
+      const isHls =
+        url
+          .toLowerCase()
+          .includes(".m3u8") ||
+        mime.includes(
+          "mpegurl"
+        );
+
+      if (
+        isHls &&
+        window.Hls &&
+        window.Hls.isSupported()
+      ) {
+
+        hls =
+          new window.Hls();
+
+        hls.loadSource(url);
+
+        hls.attachMedia(
+          video
+        );
+
+      } else {
+
+        video.src =
+          url;
+      }
+
+      updateControls();
+    }
+
+
+    /* ---------------------------------
+       CLEAR VIDEO
+    --------------------------------- */
+
+    function clearVideo() {
+
+      if (hls) {
+
+        try {
+          hls.destroy();
+        } catch (_) {}
+
+        hls = null;
+      }
+
+      video.pause();
+
+      video.removeAttribute(
+        "src"
+      );
+
+      video.load();
+
+      currentSource =
+        null;
+
+      progress.value =
+        0;
+
+      currentTime.textContent =
+        "00:00";
+
+      duration.textContent =
+        "00:00";
+
+      updateEmptyState();
+    }
+
+
+    /* ---------------------------------
+       PLAYBACK SYNC
+    --------------------------------- */
+
+    function sendPlayback() {
+
+      if (
+        !socket ||
+        !currentSource ||
+        role !== "host" ||
+        applyingRemote
+      ) {
+        return;
+      }
+
+      socket.emit(
+        "playback",
+        {
+          playing:
+            !video.paused,
+
+          time:
+            Number(
+              video.currentTime || 0
+            )
+        }
+      );
+    }
+
+
+    function applyRemotePlayback(
+      playing,
+      time
+    ) {
+
+      if (!currentSource) {
+        return;
+      }
+
+      applyingRemote =
+        true;
+
+      const target =
+        Number(time);
+
+      if (
+        Number.isFinite(target)
+      ) {
+
+        try {
+
+          if (
+            Math.abs(
+              video.currentTime -
+              target
+            ) > 0.7
+          ) {
+
+            video.currentTime =
+              target;
+          }
+
+        } catch (_) {}
+      }
+
+      if (playing) {
+
+        video
+          .play()
+          .catch(() => {});
+
+      } else {
+
+        video.pause();
+      }
+
+      setTimeout(() => {
+
+        applyingRemote =
+          false;
+
+      }, 400);
+    }
+
+
+    /* ---------------------------------
+       LOGIN
+    --------------------------------- */
+
+    joinButton.addEventListener(
+      "click",
+      () => {
+
+        const name =
+          nameInput.value.trim();
+
+        const code =
+          roomInput.value
+            .trim()
+            .toUpperCase();
+
+        loginError.textContent =
+          "";
+
+        if (!socket) {
+
+          loginError.textContent =
+            "ارتباط با سرور برقرار نیست. صفحه را Refresh کن.";
+
+          return;
+        }
+
+        if (!name || !code) {
+
+          loginError.textContent =
+            "نام و کد روم را وارد کن.";
+
+          return;
+        }
+
+        joinButton.disabled =
+          true;
+
+        joinButton.textContent =
+          "در حال ورود...";
+
+        socket.emit(
+          "join-room",
+          {
+            roomCode:
+              code,
+
+            name:
+              name
+          }
+        );
+      }
+    );
+
+
+    nameInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Enter"
+        ) {
+
+          roomInput.focus();
+        }
+      }
+    );
+
+
+    roomInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Enter"
+        ) {
+
+          joinButton.click();
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       JOINED
+    --------------------------------- */
+
+    if (socket) {
+
+      socket.on(
+        "joined-room",
+        data => {
+
+          roomCode =
+            data.roomCode;
+
+          role =
+            data.role;
+
+          users =
+            data.users || [];
+
+          myName =
+            nameInput.value.trim();
+
+          roomInfo.textContent =
+            "روم: " + roomCode;
+
+          roleBadge.textContent =
+            role === "host"
+              ? "میزبان"
+              : "مهمان";
+
+          showScreen(room);
+
+          updateUsers();
+
+          if (data.source) {
+
+            loadSource(
+              data.source
+            );
+
+          } else {
+
+            updateEmptyState();
+          }
+
+          if (
+            data.playback &&
+            data.source
+          ) {
+
+            setTimeout(() => {
+
+              applyRemotePlayback(
+                !!data.playback.playing,
+                Number(
+                  data.playback.time
+                )
+              );
+
+            }, 500);
+          }
+
+          joinButton.disabled =
+            false;
+
+          joinButton.textContent =
+            "ورود به روم";
+        }
+      );
+
+
+      socket.on(
+        "room-error",
+        message => {
+
+          joinButton.disabled =
+            false;
+
+          joinButton.textContent =
+            "ورود به روم";
+
+          loginError.textContent =
+            message;
+        }
+      );
+
+
+      /* ---------------------------------
+         SOURCE RECEIVED
+      --------------------------------- */
+
+      socket.on(
+        "media-source",
+        source => {
+
+          loadSource(
+            source
+          );
+        }
+      );
+
+
+      /* ---------------------------------
+         PLAYBACK RECEIVED
+      --------------------------------- */
+
+      socket.on(
+        "playback",
+        data => {
+
+          if (
+            role === "guest"
+          ) {
+
+            applyRemotePlayback(
+              !!data.playing,
+              Number(data.time)
+            );
+          }
+        }
+      );
+
+
+      /* ---------------------------------
+         USERS
+      --------------------------------- */
+
+      socket.on(
+        "room-users",
+        data => {
+
+          users =
+            data.users || [];
+
+          updateUsers();
+        }
+      );
+
+
+      /* ---------------------------------
+         HOST CHANGED
+      --------------------------------- */
+
+      socket.on(
+        "host-changed",
+        data => {
+
+          role =
+            data.hostId ===
+            socket.id
+              ? "host"
+              : "guest";
+
+          roleBadge.textContent =
+            role === "host"
+              ? "میزبان"
+              : "مهمان";
+
+          if (!currentSource) {
+
+            updateEmptyState();
+
+          } else {
+
+            sourcePanel.classList.add(
+              "hidden"
+            );
+          }
+
+          updateControls();
+        }
+      );
+
+
+      /* ---------------------------------
+         CHAT
+      --------------------------------- */
+
+      socket.on(
+        "chat",
+        message => {
+
+          const item =
+            document.createElement(
+              "div"
+            );
+
+          item.className =
+            "message";
+
+          if (
+            message.name ===
+            myName
+          ) {
+
+            item.classList.add(
+              "self"
+            );
+          }
+
+          const name =
+            document.createElement(
+              "div"
+            );
+
+          name.className =
+            "message-name";
+
+          name.textContent =
+            message.name;
+
+          const bubble =
+            document.createElement(
+              "div"
+            );
+
+          bubble.className =
+            "message-bubble";
+
+          bubble.textContent =
+            message.text;
+
+          item.appendChild(
+            name
+          );
+
+          item.appendChild(
+            bubble
+          );
+
+          messages.appendChild(
+            item
+          );
+
+          messages.scrollTop =
+            messages.scrollHeight;
+        }
+      );
+    }
+
+
+    /* ---------------------------------
+       USERS UI
+    --------------------------------- */
+
+    function updateUsers() {
+
+      people.textContent =
+        users.length + " نفر";
+
+      const me =
+        users.find(
+          user =>
+            user.id ===
+            socket?.id
+        );
+
+      if (me) {
+
+        role =
+          me.role;
+
+        roleBadge.textContent =
+          role === "host"
+            ? "میزبان"
+            : "مهمان";
+      }
+
+      updateControls();
+    }
+
+
+    /* ---------------------------------
+       SOURCE TABS
+    --------------------------------- */
+
+    uploadTab.addEventListener(
+      "click",
+      () => {
+
+        sourceMode =
+          "upload";
+
+        uploadTab.classList.add(
+          "active"
+        );
+
+        urlTab.classList.remove(
+          "active"
+        );
+
+        uploadSource.classList.remove(
+          "hidden"
+        );
+
+        urlSource.classList.add(
+          "hidden"
+        );
+
+        sourceStatus.textContent =
+          "";
+      }
+    );
+
+
+    urlTab.addEventListener(
+      "click",
+      () => {
+
+        sourceMode =
+          "url";
+
+        urlTab.classList.add(
+          "active"
+        );
+
+        uploadTab.classList.remove(
+          "active"
+        );
+
+        uploadSource.classList.add(
+          "hidden"
+        );
+
+        urlSource.classList.remove(
+          "hidden"
+        );
+
+        sourceStatus.textContent =
+          "";
+      }
+    );
+
+
+    fileInput.addEventListener(
+      "change",
+      () => {
+
+        if (
+          fileInput.files &&
+          fileInput.files[0]
+        ) {
+
+          sourceStatus.textContent =
+            fileInput.files[0].name;
+
+        } else {
+
+          sourceStatus.textContent =
+            "";
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       SOURCE SUBMIT
+    --------------------------------- */
+
+    sourceSubmit.addEventListener(
+      "click",
+      async () => {
+
+        if (
+          !socket ||
+          role !== "host"
+        ) {
+          return;
+        }
+
+        sourceSubmit.disabled =
+          true;
+
+        try {
+
+          /* FILE */
+
+          if (
+            sourceMode ===
+            "upload"
+          ) {
+
+            const file =
+              fileInput.files[0];
+
+            if (!file) {
+
+              sourceStatus.textContent =
+                "اول یک فایل انتخاب کن.";
+
+              return;
+            }
+
+            sourceStatus.textContent =
+              "در حال آپلود ویدئو...";
+
+            const formData =
+              new FormData();
+
+            formData.append(
+              "video",
+              file
+            );
+
+            const response =
+              await fetch(
+                "/api/upload",
+                {
+                  method:
+                    "POST",
+
+                  body:
+                    formData
+                }
+              );
+
+            let result;
+
+            try {
+
+              result =
+                await response.json();
+
+            } catch (_) {
+
+              result = {};
+            }
+
+            if (
+              !response.ok
+            ) {
+
+              throw new Error(
+                result.error ||
+                "آپلود ناموفق بود."
+              );
+            }
+
+            socket.emit(
+              "set-source",
+              {
+                type:
+                  "upload",
+
+                url:
+                  result.url,
+
+                name:
+                  result.name,
+
+                mime:
+                  result.mime
+              }
+            );
+
+            sourceStatus.textContent =
+              "ویدئو آماده شد.";
+
+          }
+
+          /* URL */
+
+          else {
+
+            const url =
+              urlInput.value.trim();
+
+            if (!url) {
+
+              sourceStatus.textContent =
+                "لینک ویدئو را وارد کن.";
+
+              return;
+            }
+
+            if (
+              !/^https?:\/\//i.test(
+                url
+              )
+            ) {
+
+              sourceStatus.textContent =
+                "لینک باید با http یا https شروع شود.";
+
+              return;
+            }
+
+            sourceStatus.textContent =
+              "در حال آماده‌سازی لینک...";
+
+            socket.emit(
+              "set-source",
+              {
+                type:
+                  "url",
+
+                url:
+                  url,
+
+                name:
+                  "ویدئوی آنلاین"
+              }
+            );
+          }
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+          sourceStatus.textContent =
+            error.message ||
+            "خطایی هنگام آماده‌سازی ویدئو رخ داد.";
+
+        } finally {
+
+          sourceSubmit.disabled =
+            false;
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       PLAY
+    --------------------------------- */
+
+    playButton.addEventListener(
+      "click",
+      () => {
+
+        if (
+          role !== "host" ||
+          !currentSource
+        ) {
+          return;
+        }
+
+        if (
+          video.paused
+        ) {
+
+          video
+            .play()
+            .then(() => {
+
+              sendPlayback();
+
+            })
+            .catch(
+              error => {
+
+                console.error(
+                  "Play error:",
+                  error
+                );
+              }
+            );
+
+        } else {
+
+          video.pause();
+
+          sendPlayback();
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       BACK 10
+    --------------------------------- */
+
+    back10.addEventListener(
+      "click",
+      () => {
+
+        if (
+          role !== "host" ||
+          !currentSource
+        ) {
+          return;
+        }
+
+        video.currentTime =
+          Math.max(
+            0,
+            video.currentTime -
+            10
+          );
+
+        sendPlayback();
+      }
+    );
+
+
+    /* ---------------------------------
+       FORWARD 10
+    --------------------------------- */
+
+    forward10.addEventListener(
+      "click",
+      () => {
+
+        if (
+          role !== "host" ||
+          !currentSource
+        ) {
+          return;
+        }
+
+        const max =
+          Number.isFinite(
+            video.duration
+          )
+            ? video.duration
+            : video.currentTime + 10;
+
+        video.currentTime =
+          Math.min(
+            max,
+            video.currentTime +
+            10
+          );
+
+        sendPlayback();
+      }
+    );
+
+
+    /* ---------------------------------
+       PROGRESS
+    --------------------------------- */
+
+    progress.addEventListener(
+      "input",
+      () => {
+
+        if (
+          role !== "host" ||
+          !currentSource ||
+          !Number.isFinite(
+            video.duration
+          ) ||
+          video.duration <= 0
+        ) {
+          return;
+        }
+
+        video.currentTime =
+          (
+            Number(
+              progress.value
+            ) / 100
+          ) *
+          video.duration;
+      }
+    );
+
+
+    progress.addEventListener(
+      "change",
+      () => {
+
+        if (
+          role === "host" &&
+          currentSource
+        ) {
+
+          sendPlayback();
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       VIDEO EVENTS
+    --------------------------------- */
+
+    video.addEventListener(
+      "loadedmetadata",
+      () => {
+
+        if (
+          Number.isFinite(
+            video.duration
+          )
+        ) {
+
+          duration.textContent =
+            formatTime(
+              video.duration
+            );
+        }
+
+        updateControls();
+      }
+    );
+
+
+    video.addEventListener(
+      "timeupdate",
+      () => {
+
+        if (
+          Number.isFinite(
+            video.duration
+          ) &&
+          video.duration > 0
+        ) {
+
+          progress.value =
+            (
+              video.currentTime /
+              video.duration
+            ) *
+            100;
+        }
+
+        currentTime.textContent =
+          formatTime(
+            video.currentTime
+          );
+      }
+    );
+
+
+    video.addEventListener(
+      "play",
+      () => {
+
+        updateControls();
+
+        if (
+          role === "host" &&
+          !applyingRemote
+        ) {
+
+          sendPlayback();
+        }
+      }
+    );
+
+
+    video.addEventListener(
+      "pause",
+      () => {
+
+        updateControls();
+
+        if (
+          role === "host" &&
+          !applyingRemote
+        ) {
+
+          sendPlayback();
+        }
+      }
+    );
+
+
+    video.addEventListener(
+      "error",
+      () => {
+
+        console.error(
+          "Video error:",
+          video.error
+        );
+
+        if (currentSource) {
+
+          sourceStatus.textContent =
+            "این ویدئو توسط مرورگر قابل پخش نیست یا لینک مستقیم نیست.";
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       FULLSCREEN
+    --------------------------------- */
+
+    fullscreenButton.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          if (
+            document.fullscreenElement
+          ) {
+
+            await document.exitFullscreen();
+
+          } else {
+
+            await videoStage.requestFullscreen();
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Fullscreen error:",
+            error
+          );
+        }
+      }
+    );
+
+
+    /* ---------------------------------
+       CHAT
+    --------------------------------- */
+
+    chatForm.addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+        if (!socket) {
+          return;
+        }
+
+        const text =
+          chatInput.value.trim();
+
+        if (!text) {
+          return;
+        }
+
+        socket.emit(
+          "chat",
+          text
+        );
+
+        chatInput.value =
+          "";
+      }
+    );
+
+
+    /* ---------------------------------
+       INITIAL
+    --------------------------------- */
+
+    updateControls();
+
+  </script>
+
+</body>
+</html>
