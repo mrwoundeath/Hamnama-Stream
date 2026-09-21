@@ -17,12 +17,21 @@ const io = new Server(server, {
 
 const MAX_ROOM_USERS = 4;
 
-const uploadDir = path.join(__dirname, "uploads");
-fs.mkdirSync(uploadDir, { recursive: true });
+// ================================
+// تنظیمات اصلی
+// ================================
 
-/* =========================
-   FILE UPLOAD
-========================= */
+const HOST_CODE = "tbolandghamat";
+
+// ================================
+// Upload
+// ================================
+
+const uploadDir = path.join(__dirname, "uploads");
+
+fs.mkdirSync(uploadDir, {
+  recursive: true
+});
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
@@ -31,7 +40,8 @@ const storage = multer.diskStorage({
 
   filename: (_, file, cb) => {
     const ext =
-      path.extname(file.originalname).toLowerCase() || ".mp4";
+      path.extname(file.originalname).toLowerCase() ||
+      ".mp4";
 
     cb(
       null,
@@ -56,17 +66,29 @@ const upload = multer({
     ) {
       cb(null, true);
     } else {
-      cb(new Error("فقط فایل ویدئویی مجاز است."));
+      cb(
+        new Error(
+          "فقط فایل ویدئویی مجاز است."
+        )
+      );
     }
   }
 });
 
-app.use(express.static(__dirname));
-app.use("/uploads", express.static(uploadDir));
+// ================================
+// Static files
+// ================================
 
-/* =========================
-   HEALTH
-========================= */
+app.use(express.static(__dirname));
+
+app.use(
+  "/uploads",
+  express.static(uploadDir)
+);
+
+// ================================
+// Health
+// ================================
 
 app.get("/health", (_, res) => {
   res.json({
@@ -76,9 +98,9 @@ app.get("/health", (_, res) => {
   });
 });
 
-/* =========================
-   UPLOAD API
-========================= */
+// ================================
+// Upload API
+// ================================
 
 app.post(
   "/api/upload",
@@ -96,13 +118,18 @@ app.post(
 
       url:
         "/uploads/" +
-        encodeURIComponent(req.file.filename),
+        encodeURIComponent(
+          req.file.filename
+        ),
 
-      name: req.file.originalname,
+      name:
+        req.file.originalname,
 
-      mime: req.file.mimetype,
+      mime:
+        req.file.mimetype,
 
-      size: req.file.size
+      size:
+        req.file.size
     });
   },
 
@@ -115,29 +142,15 @@ app.post(
   }
 );
 
-/* =========================
-   ROOMS
-========================= */
+// ================================
+// Rooms
+// ================================
 
 const rooms = new Map();
 
-/*
-Room structure:
-
-{
-  hostId,
-  hostCodeHash,
-  users: Map(),
-
-  source,
-
-  playback: {
-    playing,
-    time,
-    at
-  }
-}
-*/
+// ================================
+// Helpers
+// ================================
 
 function hashHostCode(code) {
   return crypto
@@ -146,38 +159,47 @@ function hashHostCode(code) {
     .digest("hex");
 }
 
-function verifyHostCode(room, code) {
-  if (!room?.hostCodeHash) {
-    return false;
-  }
+const HOST_CODE_HASH =
+  hashHostCode(HOST_CODE);
 
+function verifyHostCode(code) {
   return (
     hashHostCode(code) ===
-    room.hostCodeHash
+    HOST_CODE_HASH
   );
 }
 
 function roomUserList(room) {
-  return [...room.users.values()];
+  return [
+    ...room.users.values()
+  ];
 }
 
 function emitRoomState(code, room) {
-  io.to(code).emit("room-users", {
-    users: roomUserList(room),
-    maxUsers: MAX_ROOM_USERS,
-    hostId: room.hostId || null
-  });
+  io.to(code).emit(
+    "room-users",
+    {
+      users:
+        roomUserList(room),
+
+      maxUsers:
+        MAX_ROOM_USERS,
+
+      hostId:
+        room.hostId || null
+    }
+  );
 }
 
-/* =========================
-   SOCKET.IO
-========================= */
+// ================================
+// Socket.IO
+// ================================
 
 io.on("connection", socket => {
 
-  /* =========================
-     JOIN ROOM
-  ========================= */
+  // ==============================
+  // Join room
+  // ==============================
 
   socket.on(
     "join-room",
@@ -188,13 +210,15 @@ io.on("connection", socket => {
       wantsHost
     } = {}) => {
 
-      const code = String(roomCode || "")
-        .trim()
-        .toUpperCase();
+      const code =
+        String(roomCode || "")
+          .trim()
+          .toUpperCase();
 
-      const cleanName = String(name || "")
-        .trim()
-        .slice(0, 30);
+      const cleanName =
+        String(name || "")
+          .trim()
+          .slice(0, 30);
 
       const cleanHostCode =
         String(hostCode || "")
@@ -210,36 +234,23 @@ io.on("connection", socket => {
         );
       }
 
-      let room = rooms.get(code);
+      let room =
+        rooms.get(code);
 
-      /*
-        اگر روم وجود نداشته باشد،
-        اولین نفر باید Host Code بدهد.
-      */
+      // --------------------------
+      // Create room
+      // --------------------------
 
       if (!room) {
-
-        if (
-          !requestHost ||
-          !cleanHostCode
-        ) {
-          return socket.emit(
-            "room-error",
-            "برای ساخت روم باید به عنوان Host وارد شوید و Host Code را وارد کنید."
-          );
-        }
 
         room = {
           hostId: null,
 
-          hostCodeHash:
-            hashHostCode(
-              cleanHostCode
-            ),
+          users:
+            new Map(),
 
-          users: new Map(),
-
-          source: null,
+          source:
+            null,
 
           playback: {
             playing: false,
@@ -248,10 +259,15 @@ io.on("connection", socket => {
           }
         };
 
-        rooms.set(code, room);
+        rooms.set(
+          code,
+          room
+        );
       }
 
-      /* ظرفیت */
+      // --------------------------
+      // Room capacity
+      // --------------------------
 
       if (
         room.users.size >=
@@ -263,13 +279,11 @@ io.on("connection", socket => {
         );
       }
 
-      /*
-        اگر کاربر درخواست Host کرده:
-        - اگر Host فعلی وجود دارد، رد شود
-        - اگر Host وجود ندارد، Host Code بررسی شود
-      */
-
       let role = "guest";
+
+      // --------------------------
+      // Host login
+      // --------------------------
 
       if (requestHost) {
 
@@ -280,16 +294,8 @@ io.on("connection", socket => {
           );
         }
 
-        if (!cleanHostCode) {
-          return socket.emit(
-            "room-error",
-            "Host Code را وارد کنید."
-          );
-        }
-
         if (
           !verifyHostCode(
-            room,
             cleanHostCode
           )
         ) {
@@ -300,18 +306,33 @@ io.on("connection", socket => {
         }
 
         role = "host";
-        room.hostId = socket.id;
+
+        room.hostId =
+          socket.id;
       }
+
+      // --------------------------
+      // Join socket room
+      // --------------------------
 
       socket.join(code);
 
-      socket.data.roomCode = code;
-      socket.data.name = cleanName;
-      socket.data.role = role;
+      socket.data.roomCode =
+        code;
+
+      socket.data.name =
+        cleanName;
+
+      socket.data.role =
+        role;
 
       const user = {
-        id: socket.id,
-        name: cleanName,
+        id:
+          socket.id,
+
+        name:
+          cleanName,
+
         role
       };
 
@@ -320,14 +341,23 @@ io.on("connection", socket => {
         user
       );
 
+      // --------------------------
+      // Send joined state
+      // --------------------------
+
       socket.emit(
         "joined-room",
         {
-          roomCode: code,
-          role,
-          users: roomUserList(room),
+          roomCode:
+            code,
 
-          source: room.source,
+          role,
+
+          users:
+            roomUserList(room),
+
+          source:
+            room.source,
 
           playback:
             room.playback,
@@ -347,13 +377,15 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     REQUEST HOST
-  ========================= */
+  // ==============================
+  // Become Host
+  // ==============================
 
   socket.on(
     "become-host",
-    ({ hostCode } = {}) => {
+    ({
+      hostCode
+    } = {}) => {
 
       const code =
         socket.data.roomCode;
@@ -377,9 +409,7 @@ io.on("connection", socket => {
           .trim();
 
       if (
-        !cleanCode ||
         !verifyHostCode(
-          room,
           cleanCode
         )
       ) {
@@ -389,7 +419,8 @@ io.on("connection", socket => {
         );
       }
 
-      room.hostId = socket.id;
+      room.hostId =
+        socket.id;
 
       const user =
         room.users.get(
@@ -397,19 +428,24 @@ io.on("connection", socket => {
         );
 
       if (user) {
-        user.role = "host";
+
+        user.role =
+          "host";
+
         room.users.set(
           socket.id,
           user
         );
       }
 
-      socket.data.role = "host";
+      socket.data.role =
+        "host";
 
       io.to(code).emit(
         "host-changed",
         {
-          hostId: socket.id
+          hostId:
+            socket.id
         }
       );
 
@@ -424,9 +460,9 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     VIDEO SOURCE
-  ========================= */
+  // ==============================
+  // Set video source
+  // ==============================
 
   socket.on(
     "set-source",
@@ -448,6 +484,7 @@ io.on("connection", socket => {
       }
 
       room.source = {
+
         type:
           source.type === "upload"
             ? "upload"
@@ -489,9 +526,9 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     PLAYBACK
-  ========================= */
+  // ==============================
+  // Playback synchronization
+  // ==============================
 
   socket.on(
     "playback",
@@ -504,7 +541,9 @@ io.on("connection", socket => {
         rooms.get(code);
 
       const time =
-        Number(data?.time);
+        Number(
+          data?.time
+        );
 
       if (
         !room ||
@@ -522,6 +561,7 @@ io.on("connection", socket => {
       }
 
       room.playback = {
+
         playing:
           !!data.playing,
 
@@ -540,9 +580,9 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     CHAT
-  ========================= */
+  // ==============================
+  // Chat
+  // ==============================
 
   socket.on(
     "chat",
@@ -588,9 +628,9 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     WEBRTC SIGNALING
-  ========================= */
+  // ==============================
+  // Voice: Offer
+  // ==============================
 
   socket.on(
     "voice-offer",
@@ -599,7 +639,10 @@ io.on("connection", socket => {
       offer
     } = {}) => {
 
-      if (!target || !offer) {
+      if (
+        !target ||
+        !offer
+      ) {
         return;
       }
 
@@ -618,6 +661,10 @@ io.on("connection", socket => {
     }
   );
 
+  // ==============================
+  // Voice: Answer
+  // ==============================
+
   socket.on(
     "voice-answer",
     ({
@@ -625,7 +672,10 @@ io.on("connection", socket => {
       answer
     } = {}) => {
 
-      if (!target || !answer) {
+      if (
+        !target ||
+        !answer
+      ) {
         return;
       }
 
@@ -641,6 +691,10 @@ io.on("connection", socket => {
     }
   );
 
+  // ==============================
+  // Voice: ICE
+  // ==============================
+
   socket.on(
     "voice-ice",
     ({
@@ -648,7 +702,10 @@ io.on("connection", socket => {
       candidate
     } = {}) => {
 
-      if (!target || !candidate) {
+      if (
+        !target ||
+        !candidate
+      ) {
         return;
       }
 
@@ -663,6 +720,10 @@ io.on("connection", socket => {
       );
     }
   );
+
+  // ==============================
+  // Voice state
+  // ==============================
 
   socket.on(
     "voice-state",
@@ -695,9 +756,9 @@ io.on("connection", socket => {
     }
   );
 
-  /* =========================
-     DISCONNECT
-  ========================= */
+  // ==============================
+  // Disconnect
+  // ==============================
 
   socket.on(
     "disconnect",
@@ -721,16 +782,11 @@ io.on("connection", socket => {
         socket.id
       );
 
-      /*
-        اگر Host خارج شد،
-        دیگر به صورت خودکار
-        کسی Host نمی‌شود.
-        برای حفظ امنیت باید
-        Host Code وارد شود.
-      */
-
+      // Host left
       if (wasHost) {
-        room.hostId = null;
+
+        room.hostId =
+          null;
 
         io.to(code).emit(
           "host-changed",
@@ -740,6 +796,7 @@ io.on("connection", socket => {
         );
       }
 
+      // Empty room
       if (
         room.users.size === 0
       ) {
@@ -755,9 +812,9 @@ io.on("connection", socket => {
   );
 });
 
-/* =========================
-   START
-========================= */
+// ================================
+// Start server
+// ================================
 
 const PORT =
   process.env.PORT || 3001;
