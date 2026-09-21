@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
 
@@ -15,13 +16,12 @@
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2314141a'/%3E%3Crect x='18' y='22' width='64' height='56' rx='12' fill='%236c63ff'/%3E%3Cpath d='M43 37L66 50L43 63Z' fill='white'/%3E%3C/svg%3E"
   >
 
-  <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <!-- HLS -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -33,7 +33,7 @@
       height: 100%;
       margin: 0;
       background: #08080c;
-      color: #fff;
+      color: white;
       font-family: Tahoma, Arial, sans-serif;
     }
 
@@ -61,6 +61,10 @@
       display: flex;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     /* =========================
        INTRO
     ========================= */
@@ -80,8 +84,8 @@
     }
 
     .intro-logo {
-      width: 94px;
-      height: 94px;
+      width: 95px;
+      height: 95px;
 
       border-radius: 28px;
 
@@ -99,12 +103,13 @@
 
     .intro-logo::after {
       content: "";
+
       width: 0;
       height: 0;
 
-      border-top: 18px solid transparent;
-      border-bottom: 18px solid transparent;
-      border-left: 30px solid white;
+      border-top: 19px solid transparent;
+      border-bottom: 19px solid transparent;
+      border-left: 31px solid white;
 
       margin-left: 7px;
     }
@@ -124,6 +129,7 @@
     }
 
     @keyframes introLogo {
+
       from {
         opacity: 0;
         transform: scale(.7);
@@ -133,6 +139,7 @@
         opacity: 1;
         transform: scale(1);
       }
+
     }
 
     /* =========================
@@ -142,19 +149,20 @@
     #login {
       align-items: center;
       justify-content: center;
+
       padding: 20px;
     }
 
     .login-card {
       width: min(430px, 100%);
 
+      padding: 28px;
+
       background: #15151c;
 
       border: 1px solid #292932;
 
       border-radius: 24px;
-
-      padding: 28px;
 
       box-shadow:
         0 25px 80px rgba(0,0,0,.45);
@@ -196,9 +204,8 @@
 
       padding: 0 15px;
 
-      border-radius: 14px;
-
       border: 1px solid #30303a;
+      border-radius: 14px;
 
       outline: none;
 
@@ -228,7 +235,6 @@
 
     .primary:disabled {
       opacity: .55;
-      cursor: default;
     }
 
     .login-error {
@@ -303,10 +309,6 @@
       margin-left: 3px;
     }
 
-    .brand-text {
-      min-width: 0;
-    }
-
     .brand-title {
       font-size: 14px;
       font-weight: 800;
@@ -320,9 +322,7 @@
       font-size: 11px;
 
       white-space: nowrap;
-
       overflow: hidden;
-
       text-overflow: ellipsis;
     }
 
@@ -454,13 +454,47 @@
     }
 
     /* =========================
+       REPLACE BUTTON
+    ========================= */
+
+    .replace-video-button {
+      position: absolute;
+
+      top: 14px;
+      right: 14px;
+
+      z-index: 20;
+
+      padding: 10px 14px;
+
+      border-radius: 12px;
+
+      background: rgba(20,20,28,.94);
+
+      border: 1px solid #3a3a46;
+
+      color: white;
+
+      font-size: 12px;
+
+      font-weight: 700;
+
+      box-shadow:
+        0 8px 30px rgba(0,0,0,.35);
+    }
+
+    .replace-video-button:hover {
+      background: #6c63ff;
+    }
+
+    /* =========================
        SOURCE PANEL
     ========================= */
 
     .source-panel {
       position: absolute;
 
-      z-index: 10;
+      z-index: 30;
 
       left: 50%;
       top: 50%;
@@ -615,6 +649,48 @@
     }
 
     /* =========================
+       PROGRESS
+    ========================= */
+
+    .upload-progress {
+      margin-top: 14px;
+    }
+
+    .upload-progress-bar {
+      width: 100%;
+      height: 7px;
+
+      overflow: hidden;
+
+      border-radius: 20px;
+
+      background: #292933;
+    }
+
+    .upload-progress-fill {
+      width: 0%;
+      height: 100%;
+
+      border-radius: 20px;
+
+      background: #6c63ff;
+
+      transition: width .15s ease;
+    }
+
+    .upload-progress-info {
+      display: flex;
+
+      justify-content: space-between;
+
+      margin-top: 6px;
+
+      color: #92929d;
+
+      font-size: 11px;
+    }
+
+    /* =========================
        CONTROLS
     ========================= */
 
@@ -724,7 +800,6 @@
 
     .chat-title {
       font-size: 14px;
-
       font-weight: 800;
     }
 
@@ -821,10 +896,6 @@
       color: white;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
     /* =========================
        MOBILE
     ========================= */
@@ -846,6 +917,7 @@
         height: 45%;
 
         border-right: 0;
+
         border-top: 1px solid #25252d;
       }
 
@@ -861,6 +933,7 @@
       .chat-form {
         padding: 7px;
       }
+
     }
 
     /* =========================
@@ -877,6 +950,7 @@
 
       .video-section {
         width: 68%;
+
         min-height: 0;
       }
 
@@ -919,11 +993,15 @@
       .control-button.play {
         width: 39px;
       }
+
     }
+
   </style>
 </head>
 
+
 <body>
+
 
   <!-- =========================
        INTRO
@@ -966,6 +1044,7 @@
         اسمت و کد روم رو وارد کن تا وارد تماشای مشترک بشی.
       </p>
 
+
       <div class="field">
 
         <label>
@@ -981,6 +1060,7 @@
         >
 
       </div>
+
 
       <div class="field">
 
@@ -999,12 +1079,15 @@
 
       </div>
 
+
       <button
         id="joinButton"
         class="primary"
+        type="button"
       >
         ورود به روم
       </button>
+
 
       <div
         id="loginError"
@@ -1025,13 +1108,14 @@
     class="screen"
   >
 
+
     <header class="topbar">
 
       <div class="brand">
 
         <div class="mini-logo"></div>
 
-        <div class="brand-text">
+        <div>
 
           <div class="brand-title">
             باهم ببینیم
@@ -1046,6 +1130,7 @@
 
       </div>
 
+
       <div
         id="roleBadge"
         class="role-badge"
@@ -1058,14 +1143,19 @@
 
     <main class="content">
 
-      <!-- VIDEO -->
+
+      <!-- =========================
+           VIDEO SECTION
+      ========================= -->
 
       <section class="video-section">
+
 
         <div
           id="videoStage"
           class="video-stage"
         >
+
 
           <div
             id="emptyState"
@@ -1100,20 +1190,36 @@
           ></video>
 
 
-          <!-- SOURCE PANEL -->
+          <!-- =========================
+               REPLACE VIDEO
+          ========================= -->
+
+          <button
+            id="replaceVideoButton"
+            class="replace-video-button hidden"
+            type="button"
+          >
+            🔄 تعویض ویدئو
+          </button>
+
+
+          <!-- =========================
+               SOURCE PANEL
+          ========================= -->
 
           <div
             id="sourcePanel"
             class="source-panel hidden"
           >
 
-            <h2>
+            <h2 id="sourcePanelTitle">
               انتخاب ویدئو
             </h2>
 
             <p>
-              فقط میزبان می‌تواند ویدئو یا لینک پخش را انتخاب کند.
+              فقط میزبان می‌تواند ویدئو را انتخاب یا جایگزین کند.
             </p>
+
 
             <div class="source-tabs">
 
@@ -1122,7 +1228,7 @@
                 class="source-tab active"
                 type="button"
               >
-                فایل ویدئویی
+                📁 فایل ویدئویی
               </button>
 
               <button
@@ -1130,11 +1236,13 @@
                 class="source-tab"
                 type="button"
               >
-                لینک ویدئو
+                🔗 لینک ویدئو
               </button>
 
             </div>
 
+
+            <!-- FILE -->
 
             <div id="uploadSource">
 
@@ -1153,6 +1261,8 @@
             </div>
 
 
+            <!-- URL -->
+
             <div
               id="urlSource"
               class="hidden"
@@ -1163,6 +1273,7 @@
                 class="source-input"
                 type="url"
                 placeholder="https://example.com/video.mp4"
+                autocomplete="off"
                 dir="ltr"
               >
 
@@ -1177,19 +1288,55 @@
               شروع پخش
             </button>
 
+
             <div
               id="sourceStatus"
               class="source-status"
             ></div>
+
+
+            <!-- UPLOAD PROGRESS -->
+
+            <div
+              id="uploadProgress"
+              class="upload-progress hidden"
+            >
+
+              <div class="upload-progress-bar">
+
+                <div
+                  id="uploadProgressFill"
+                  class="upload-progress-fill"
+                ></div>
+
+              </div>
+
+
+              <div class="upload-progress-info">
+
+                <span id="uploadProgressText">
+                  آماده‌سازی...
+                </span>
+
+                <span id="uploadProgressPercent">
+                  0%
+                </span>
+
+              </div>
+
+            </div>
 
           </div>
 
         </div>
 
 
-        <!-- CONTROLS -->
+        <!-- =========================
+             CONTROLS
+        ========================= -->
 
         <div class="controls">
+
 
           <div class="progress-row">
 
@@ -1200,6 +1347,7 @@
               00:00
             </span>
 
+
             <input
               id="progress"
               class="progress"
@@ -1209,6 +1357,7 @@
               value="0"
               step="0.1"
             >
+
 
             <span
               id="duration"
@@ -1230,6 +1379,7 @@
               ↶10
             </button>
 
+
             <button
               id="playButton"
               class="control-button play"
@@ -1238,6 +1388,7 @@
               ▶
             </button>
 
+
             <button
               id="forward10"
               class="control-button"
@@ -1245,6 +1396,7 @@
             >
               10↷
             </button>
+
 
             <button
               id="fullscreenButton"
@@ -1261,9 +1413,12 @@
       </section>
 
 
-      <!-- CHAT -->
+      <!-- =========================
+           CHAT
+      ========================= -->
 
       <aside class="chat">
+
 
         <div class="chat-header">
 
@@ -1300,6 +1455,7 @@
             autocomplete="off"
           >
 
+
           <button
             class="chat-send"
             type="submit"
@@ -1322,9 +1478,10 @@
 
   <script>
 
-    /* ---------------------------------
+
+    /* =========================
        ELEMENTS
-    --------------------------------- */
+    ========================= */
 
     const intro =
       document.getElementById("intro");
@@ -1368,8 +1525,18 @@
     const emptyText =
       document.getElementById("emptyText");
 
+    const replaceVideoButton =
+      document.getElementById(
+        "replaceVideoButton"
+      );
+
     const sourcePanel =
       document.getElementById("sourcePanel");
+
+    const sourcePanelTitle =
+      document.getElementById(
+        "sourcePanelTitle"
+      );
 
     const uploadTab =
       document.getElementById("uploadTab");
@@ -1390,48 +1557,94 @@
       document.getElementById("urlInput");
 
     const sourceSubmit =
-      document.getElementById("sourceSubmit");
+      document.getElementById(
+        "sourceSubmit"
+      );
 
     const sourceStatus =
-      document.getElementById("sourceStatus");
+      document.getElementById(
+        "sourceStatus"
+      );
+
+    const uploadProgress =
+      document.getElementById(
+        "uploadProgress"
+      );
+
+    const uploadProgressFill =
+      document.getElementById(
+        "uploadProgressFill"
+      );
+
+    const uploadProgressText =
+      document.getElementById(
+        "uploadProgressText"
+      );
+
+    const uploadProgressPercent =
+      document.getElementById(
+        "uploadProgressPercent"
+      );
 
     const playButton =
-      document.getElementById("playButton");
+      document.getElementById(
+        "playButton"
+      );
 
     const back10 =
-      document.getElementById("back10");
+      document.getElementById(
+        "back10"
+      );
 
     const forward10 =
-      document.getElementById("forward10");
+      document.getElementById(
+        "forward10"
+      );
 
     const fullscreenButton =
-      document.getElementById("fullscreenButton");
+      document.getElementById(
+        "fullscreenButton"
+      );
 
     const progress =
-      document.getElementById("progress");
+      document.getElementById(
+        "progress"
+      );
 
     const currentTime =
-      document.getElementById("currentTime");
+      document.getElementById(
+        "currentTime"
+      );
 
     const duration =
-      document.getElementById("duration");
+      document.getElementById(
+        "duration"
+      );
 
     const messages =
-      document.getElementById("messages");
+      document.getElementById(
+        "messages"
+      );
 
     const people =
-      document.getElementById("people");
+      document.getElementById(
+        "people"
+      );
 
     const chatForm =
-      document.getElementById("chatForm");
+      document.getElementById(
+        "chatForm"
+      );
 
     const chatInput =
-      document.getElementById("chatInput");
+      document.getElementById(
+        "chatInput"
+      );
 
 
-    /* ---------------------------------
+    /* =========================
        STATE
-    --------------------------------- */
+    ========================= */
 
     let socket = null;
 
@@ -1452,25 +1665,31 @@
     let applyingRemote = false;
 
 
-    /* ---------------------------------
+    /* =========================
        SCREEN
-    --------------------------------- */
+    ========================= */
 
     function showScreen(element) {
 
       document
         .querySelectorAll(".screen")
         .forEach(screen => {
-          screen.classList.remove("active");
+
+          screen.classList.remove(
+            "active"
+          );
+
         });
 
-      element.classList.add("active");
+      element.classList.add(
+        "active"
+      );
     }
 
 
-    /* ---------------------------------
+    /* =========================
        INTRO
-    --------------------------------- */
+    ========================= */
 
     setTimeout(() => {
 
@@ -1479,37 +1698,38 @@
     }, 1200);
 
 
-    /* ---------------------------------
-       SOCKET.IO CHECK
-    --------------------------------- */
+    /* =========================
+       SOCKET
+    ========================= */
 
     function startSocket() {
 
       if (
-        typeof window.io !== "function"
+        typeof window.io !==
+        "function"
       ) {
 
         loginError.textContent =
-          "ارتباط با سرور برقرار نشد. لطفاً صفحه را Refresh کن.";
+          "Socket.IO از سرور دریافت نشد. صفحه را Refresh کن.";
 
         return false;
       }
 
       try {
 
-        socket = window.io({
-          transports: [
-            "websocket",
-            "polling"
-          ]
-        });
+        socket =
+          window.io({
+            transports: [
+              "websocket",
+              "polling"
+            ]
+          });
 
         return true;
 
       } catch (error) {
 
         console.error(
-          "Socket.IO error:",
           error
         );
 
@@ -1520,10 +1740,6 @@
       }
     }
 
-
-    /* ---------------------------------
-       SOCKET CONNECTION
-    --------------------------------- */
 
     const socketReady =
       startSocket();
@@ -1536,7 +1752,7 @@
         () => {
 
           console.log(
-            "Socket connected:",
+            "Connected:",
             socket.id
           );
 
@@ -1549,7 +1765,7 @@
         error => {
 
           console.error(
-            "Socket connection error:",
+            "Socket error:",
             error
           );
 
@@ -1559,15 +1775,20 @@
     }
 
 
-    /* ---------------------------------
-       FORMAT TIME
-    --------------------------------- */
+    /* =========================
+       TIME
+    ========================= */
 
-    function formatTime(seconds) {
+    function formatTime(
+      seconds
+    ) {
 
       if (
-        !Number.isFinite(seconds)
+        !Number.isFinite(
+          seconds
+        )
       ) {
+
         return "00:00";
       }
 
@@ -1584,43 +1805,108 @@
 
       const minutes =
         Math.floor(
-          (seconds % 3600) / 60
+          (seconds % 3600) /
+          60
         );
 
       const secs =
         seconds % 60;
 
+
       if (hours > 0) {
 
         return (
-          String(hours).padStart(2, "0") +
+          String(hours)
+            .padStart(2, "0") +
           ":" +
-          String(minutes).padStart(2, "0") +
+          String(minutes)
+            .padStart(2, "0") +
           ":" +
-          String(secs).padStart(2, "0")
+          String(secs)
+            .padStart(2, "0")
         );
-
       }
 
+
       return (
-        String(minutes).padStart(2, "0") +
+        String(minutes)
+          .padStart(2, "0") +
         ":" +
-        String(secs).padStart(2, "0")
+        String(secs)
+          .padStart(2, "0")
       );
     }
 
 
-    /* ---------------------------------
-       CONTROLS
-    --------------------------------- */
+    /* =========================
+       UPLOAD PROGRESS
+    ========================= */
+
+    function setUploadProgress(
+      percent,
+      text
+    ) {
+
+      const value =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            Number(percent) || 0
+          )
+        );
+
+
+      uploadProgress.classList.remove(
+        "hidden"
+      );
+
+
+      uploadProgressFill.style.width =
+        value + "%";
+
+
+      uploadProgressPercent.textContent =
+        Math.round(value) +
+        "%";
+
+
+      uploadProgressText.textContent =
+        text ||
+        "در حال آپلود...";
+    }
+
+
+    function hideUploadProgress() {
+
+      uploadProgress.classList.add(
+        "hidden"
+      );
+
+      uploadProgressFill.style.width =
+        "0%";
+
+      uploadProgressPercent.textContent =
+        "0%";
+
+      uploadProgressText.textContent =
+        "آماده‌سازی...";
+    }
+
+
+    /* =========================
+       UPDATE CONTROLS
+    ========================= */
 
     function updateControls() {
 
-      const host =
+      const isHost =
         role === "host";
 
       const enabled =
-        host && !!currentSource;
+        isHost &&
+        !!currentSource;
+
 
       playButton.disabled =
         !enabled;
@@ -1634,6 +1920,7 @@
       progress.disabled =
         !enabled;
 
+
       playButton.textContent =
         video.paused
           ? "▶"
@@ -1641,9 +1928,33 @@
     }
 
 
-    /* ---------------------------------
+    /* =========================
+       REPLACE BUTTON
+    ========================= */
+
+    function updateReplaceButton() {
+
+      if (
+        role === "host" &&
+        currentSource
+      ) {
+
+        replaceVideoButton.classList.remove(
+          "hidden"
+        );
+
+      } else {
+
+        replaceVideoButton.classList.add(
+          "hidden"
+        );
+      }
+    }
+
+
+    /* =========================
        EMPTY STATE
-    --------------------------------- */
+    ========================= */
 
     function updateEmptyState() {
 
@@ -1651,7 +1962,10 @@
         "hidden"
       );
 
-      if (role === "host") {
+
+      if (
+        role === "host"
+      ) {
 
         emptyTitle.textContent =
           "ویدئو انتخاب نشده";
@@ -1669,49 +1983,65 @@
           "منتظر میزبان";
 
         emptyText.textContent =
-          "وقتی میزبان ویدئو را انتخاب کند، پخش برای تو هم فعال می‌شود.";
+          "وقتی میزبان ویدئو را انتخاب کند، ویدئو برای تو هم پخش می‌شود.";
 
         sourcePanel.classList.add(
           "hidden"
         );
       }
 
+
       updateControls();
+
+      updateReplaceButton();
     }
 
 
-    /* ---------------------------------
+    /* =========================
        LOAD SOURCE
-    --------------------------------- */
+    ========================= */
 
-    function loadSource(source) {
+    function loadSource(
+      source
+    ) {
 
       if (
         !source ||
         !source.url
       ) {
+
         return;
       }
 
+
       currentSource =
         source;
+
 
       emptyState.classList.add(
         "hidden"
       );
 
+
       sourcePanel.classList.add(
         "hidden"
       );
 
+
+      hideUploadProgress();
+
+
       if (hls) {
 
         try {
+
           hls.destroy();
+
         } catch (_) {}
 
         hls = null;
       }
+
 
       video.pause();
 
@@ -1721,13 +2051,18 @@
 
       video.load();
 
+
       const url =
-        String(source.url);
+        String(
+          source.url
+        );
+
 
       const mime =
         String(
           source.mime || ""
         ).toLowerCase();
+
 
       const isHls =
         url
@@ -1736,6 +2071,7 @@
         mime.includes(
           "mpegurl"
         );
+
 
       if (
         isHls &&
@@ -1746,7 +2082,9 @@
         hls =
           new window.Hls();
 
-        hls.loadSource(url);
+        hls.loadSource(
+          url
+        );
 
         hls.attachMedia(
           video
@@ -1758,24 +2096,30 @@
           url;
       }
 
+
       updateControls();
+
+      updateReplaceButton();
     }
 
 
-    /* ---------------------------------
+    /* =========================
        CLEAR VIDEO
-    --------------------------------- */
+    ========================= */
 
     function clearVideo() {
 
       if (hls) {
 
         try {
+
           hls.destroy();
+
         } catch (_) {}
 
         hls = null;
       }
+
 
       video.pause();
 
@@ -1785,25 +2129,32 @@
 
       video.load();
 
+
       currentSource =
         null;
+
 
       progress.value =
         0;
 
+
       currentTime.textContent =
         "00:00";
+
 
       duration.textContent =
         "00:00";
 
+
       updateEmptyState();
+
+      updateReplaceButton();
     }
 
 
-    /* ---------------------------------
-       PLAYBACK SYNC
-    --------------------------------- */
+    /* =========================
+       SEND PLAYBACK
+    ========================= */
 
     function sendPlayback() {
 
@@ -1813,8 +2164,10 @@
         role !== "host" ||
         applyingRemote
       ) {
+
         return;
       }
+
 
       socket.emit(
         "playback",
@@ -1824,30 +2177,43 @@
 
           time:
             Number(
-              video.currentTime || 0
+              video.currentTime ||
+              0
             )
         }
       );
     }
 
 
+    /* =========================
+       REMOTE PLAYBACK
+    ========================= */
+
     function applyRemotePlayback(
       playing,
       time
     ) {
 
-      if (!currentSource) {
+      if (
+        !currentSource
+      ) {
+
         return;
       }
+
 
       applyingRemote =
         true;
 
+
       const target =
         Number(time);
 
+
       if (
-        Number.isFinite(target)
+        Number.isFinite(
+          target
+        )
       ) {
 
         try {
@@ -1866,29 +2232,36 @@
         } catch (_) {}
       }
 
+
       if (playing) {
 
         video
           .play()
-          .catch(() => {});
+          .catch(
+            () => {}
+          );
 
       } else {
 
         video.pause();
       }
 
-      setTimeout(() => {
 
-        applyingRemote =
-          false;
+      setTimeout(
+        () => {
 
-      }, 400);
+          applyingRemote =
+            false;
+
+        },
+        400
+      );
     }
 
 
-    /* ---------------------------------
+    /* =========================
        LOGIN
-    --------------------------------- */
+    ========================= */
 
     joinButton.addEventListener(
       "click",
@@ -1902,8 +2275,10 @@
             .trim()
             .toUpperCase();
 
+
         loginError.textContent =
           "";
+
 
         if (!socket) {
 
@@ -1913,7 +2288,11 @@
           return;
         }
 
-        if (!name || !code) {
+
+        if (
+          !name ||
+          !code
+        ) {
 
           loginError.textContent =
             "نام و کد روم را وارد کن.";
@@ -1921,11 +2300,13 @@
           return;
         }
 
+
         joinButton.disabled =
           true;
 
         joinButton.textContent =
           "در حال ورود...";
+
 
         socket.emit(
           "join-room",
@@ -1937,6 +2318,7 @@
               name
           }
         );
+
       }
     );
 
@@ -1946,11 +2328,13 @@
       event => {
 
         if (
-          event.key === "Enter"
+          event.key ===
+          "Enter"
         ) {
 
           roomInput.focus();
         }
+
       }
     );
 
@@ -1960,20 +2344,25 @@
       event => {
 
         if (
-          event.key === "Enter"
+          event.key ===
+          "Enter"
         ) {
 
           joinButton.click();
         }
+
       }
     );
 
 
-    /* ---------------------------------
-       JOINED
-    --------------------------------- */
+    /* =========================
+       SOCKET EVENTS
+    ========================= */
 
     if (socket) {
+
+
+      /* JOIN */
 
       socket.on(
         "joined-room",
@@ -1991,19 +2380,29 @@
           myName =
             nameInput.value.trim();
 
+
           roomInfo.textContent =
-            "روم: " + roomCode;
+            "روم: " +
+            roomCode;
+
 
           roleBadge.textContent =
             role === "host"
               ? "میزبان"
               : "مهمان";
 
-          showScreen(room);
+
+          showScreen(
+            room
+          );
+
 
           updateUsers();
 
-          if (data.source) {
+
+          if (
+            data.source
+          ) {
 
             loadSource(
               data.source
@@ -2014,22 +2413,27 @@
             updateEmptyState();
           }
 
+
           if (
             data.playback &&
             data.source
           ) {
 
-            setTimeout(() => {
+            setTimeout(
+              () => {
 
-              applyRemotePlayback(
-                !!data.playback.playing,
-                Number(
-                  data.playback.time
-                )
-              );
+                applyRemotePlayback(
+                  !!data.playback.playing,
+                  Number(
+                    data.playback.time
+                  )
+                );
 
-            }, 500);
+              },
+              600
+            );
           }
+
 
           joinButton.disabled =
             false;
@@ -2039,6 +2443,8 @@
         }
       );
 
+
+      /* ROOM ERROR */
 
       socket.on(
         "room-error",
@@ -2050,15 +2456,14 @@
           joinButton.textContent =
             "ورود به روم";
 
+
           loginError.textContent =
             message;
         }
       );
 
 
-      /* ---------------------------------
-         SOURCE RECEIVED
-      --------------------------------- */
+      /* NEW VIDEO */
 
       socket.on(
         "media-source",
@@ -2071,9 +2476,7 @@
       );
 
 
-      /* ---------------------------------
-         PLAYBACK RECEIVED
-      --------------------------------- */
+      /* PLAYBACK */
 
       socket.on(
         "playback",
@@ -2085,16 +2488,16 @@
 
             applyRemotePlayback(
               !!data.playing,
-              Number(data.time)
+              Number(
+                data.time
+              )
             );
           }
         }
       );
 
 
-      /* ---------------------------------
-         USERS
-      --------------------------------- */
+      /* USERS */
 
       socket.on(
         "room-users",
@@ -2108,9 +2511,7 @@
       );
 
 
-      /* ---------------------------------
-         HOST CHANGED
-      --------------------------------- */
+      /* HOST CHANGED */
 
       socket.on(
         "host-changed",
@@ -2122,30 +2523,48 @@
               ? "host"
               : "guest";
 
+
           roleBadge.textContent =
             role === "host"
               ? "میزبان"
               : "مهمان";
 
-          if (!currentSource) {
 
-            updateEmptyState();
+          if (
+            role === "host"
+          ) {
+
+            if (
+              currentSource
+            ) {
+
+              replaceVideoButton.classList.remove(
+                "hidden"
+              );
+
+            } else {
+
+              updateEmptyState();
+            }
 
           } else {
 
             sourcePanel.classList.add(
               "hidden"
             );
+
+            replaceVideoButton.classList.add(
+              "hidden"
+            );
           }
+
 
           updateControls();
         }
       );
 
 
-      /* ---------------------------------
-         CHAT
-      --------------------------------- */
+      /* CHAT */
 
       socket.on(
         "chat",
@@ -2156,8 +2575,10 @@
               "div"
             );
 
+
           item.className =
             "message";
+
 
           if (
             message.name ===
@@ -2169,27 +2590,34 @@
             );
           }
 
+
           const name =
             document.createElement(
               "div"
             );
 
+
           name.className =
             "message-name";
 
+
           name.textContent =
             message.name;
+
 
           const bubble =
             document.createElement(
               "div"
             );
 
+
           bubble.className =
             "message-bubble";
 
+
           bubble.textContent =
             message.text;
+
 
           item.appendChild(
             name
@@ -2199,25 +2627,30 @@
             bubble
           );
 
+
           messages.appendChild(
             item
           );
+
 
           messages.scrollTop =
             messages.scrollHeight;
         }
       );
+
     }
 
 
-    /* ---------------------------------
+    /* =========================
        USERS UI
-    --------------------------------- */
+    ========================= */
 
     function updateUsers() {
 
       people.textContent =
-        users.length + " نفر";
+        users.length +
+        " نفر";
+
 
       const me =
         users.find(
@@ -2226,10 +2659,12 @@
             socket?.id
         );
 
+
       if (me) {
 
         role =
           me.role;
+
 
         roleBadge.textContent =
           role === "host"
@@ -2237,13 +2672,16 @@
             : "مهمان";
       }
 
+
       updateControls();
+
+      updateReplaceButton();
     }
 
 
-    /* ---------------------------------
+    /* =========================
        SOURCE TABS
-    --------------------------------- */
+    ========================= */
 
     uploadTab.addEventListener(
       "click",
@@ -2251,6 +2689,7 @@
 
         sourceMode =
           "upload";
+
 
         uploadTab.classList.add(
           "active"
@@ -2260,6 +2699,7 @@
           "active"
         );
 
+
         uploadSource.classList.remove(
           "hidden"
         );
@@ -2268,8 +2708,11 @@
           "hidden"
         );
 
+
         sourceStatus.textContent =
           "";
+
+        hideUploadProgress();
       }
     );
 
@@ -2281,6 +2724,7 @@
         sourceMode =
           "url";
 
+
         urlTab.classList.add(
           "active"
         );
@@ -2288,6 +2732,7 @@
         uploadTab.classList.remove(
           "active"
         );
+
 
         uploadSource.classList.add(
           "hidden"
@@ -2297,11 +2742,18 @@
           "hidden"
         );
 
+
         sourceStatus.textContent =
           "";
+
+        hideUploadProgress();
       }
     );
 
+
+    /* =========================
+       FILE SELECTED
+    ========================= */
 
     fileInput.addEventListener(
       "change",
@@ -2320,39 +2772,186 @@
           sourceStatus.textContent =
             "";
         }
+
       }
     );
 
 
-    /* ---------------------------------
-       SOURCE SUBMIT
-    --------------------------------- */
+    /* =========================
+       REAL FILE UPLOAD
+    ========================= */
+
+    function uploadVideo(
+      file
+    ) {
+
+      return new Promise(
+        (
+          resolve,
+          reject
+        ) => {
+
+
+          const xhr =
+            new XMLHttpRequest();
+
+
+          const formData =
+            new FormData();
+
+
+          formData.append(
+            "video",
+            file
+          );
+
+
+          xhr.open(
+            "POST",
+            "/api/upload"
+          );
+
+
+          xhr.upload.onprogress =
+            event => {
+
+              if (
+                !event.lengthComputable
+              ) {
+
+                return;
+              }
+
+
+              const percent =
+                (
+                  event.loaded /
+                  event.total
+                ) * 100;
+
+
+              setUploadProgress(
+                percent,
+                "در حال آپلود ویدئو..."
+              );
+            };
+
+
+          xhr.onload =
+            () => {
+
+              let result = {};
+
+
+              try {
+
+                result =
+                  JSON.parse(
+                    xhr.responseText
+                  );
+
+              } catch (_) {}
+
+
+              if (
+                xhr.status >= 200 &&
+                xhr.status < 300
+              ) {
+
+                setUploadProgress(
+                  100,
+                  "آپلود کامل شد؛ در حال آماده‌سازی..."
+                );
+
+
+                resolve(
+                  result
+                );
+
+              } else {
+
+                reject(
+                  new Error(
+                    result.error ||
+                    "آپلود ناموفق بود."
+                  )
+                );
+              }
+
+            };
+
+
+          xhr.onerror =
+            () => {
+
+              reject(
+                new Error(
+                  "ارتباط با سرور هنگام آپلود قطع شد."
+                )
+              );
+
+            };
+
+
+          xhr.onabort =
+            () => {
+
+              reject(
+                new Error(
+                  "آپلود لغو شد."
+                )
+              );
+
+            };
+
+
+          xhr.send(
+            formData
+          );
+
+        }
+      );
+    }
+
+
+    /* =========================
+       START / REPLACE VIDEO
+    ========================= */
 
     sourceSubmit.addEventListener(
       "click",
       async () => {
 
+
         if (
           !socket ||
           role !== "host"
         ) {
+
           return;
         }
+
 
         sourceSubmit.disabled =
           true;
 
+
         try {
 
-          /* FILE */
+
+          /* =====================
+             FILE
+          ===================== */
 
           if (
             sourceMode ===
             "upload"
           ) {
 
+
             const file =
               fileInput.files[0];
+
 
             if (!file) {
 
@@ -2362,50 +2961,24 @@
               return;
             }
 
-            sourceStatus.textContent =
-              "در حال آپلود ویدئو...";
 
-            const formData =
-              new FormData();
-
-            formData.append(
-              "video",
-              file
+            setUploadProgress(
+              0,
+              "آماده‌سازی آپلود..."
             );
 
-            const response =
-              await fetch(
-                "/api/upload",
-                {
-                  method:
-                    "POST",
 
-                  body:
-                    formData
-                }
+            const result =
+              await uploadVideo(
+                file
               );
 
-            let result;
 
-            try {
+            setUploadProgress(
+              100,
+              "آپلود کامل شد؛ در حال ارسال به روم..."
+            );
 
-              result =
-                await response.json();
-
-            } catch (_) {
-
-              result = {};
-            }
-
-            if (
-              !response.ok
-            ) {
-
-              throw new Error(
-                result.error ||
-                "آپلود ناموفق بود."
-              );
-            }
 
             socket.emit(
               "set-source",
@@ -2424,17 +2997,34 @@
               }
             );
 
+
             sourceStatus.textContent =
-              "ویدئو آماده شد.";
+              "ویدئو با موفقیت جایگزین شد.";
+
+
+            setTimeout(
+              () => {
+
+                hideUploadProgress();
+
+              },
+              1500
+            );
+
 
           }
 
-          /* URL */
+
+          /* =====================
+             URL
+          ===================== */
 
           else {
 
+
             const url =
               urlInput.value.trim();
+
 
             if (!url) {
 
@@ -2443,6 +3033,7 @@
 
               return;
             }
+
 
             if (
               !/^https?:\/\//i.test(
@@ -2456,8 +3047,12 @@
               return;
             }
 
-            sourceStatus.textContent =
-              "در حال آماده‌سازی لینک...";
+
+            setUploadProgress(
+              100,
+              "لینک دریافت شد؛ در حال آماده‌سازی..."
+            );
+
 
             socket.emit(
               "set-source",
@@ -2472,53 +3067,152 @@
                   "ویدئوی آنلاین"
               }
             );
+
+
+            sourceStatus.textContent =
+              "لینک ارسال شد؛ در حال بارگذاری ویدئو...";
+
+
+            setTimeout(
+              () => {
+
+                hideUploadProgress();
+
+              },
+              2500
+            );
+
           }
 
+
         } catch (error) {
+
 
           console.error(
             error
           );
 
+
           sourceStatus.textContent =
             error.message ||
             "خطایی هنگام آماده‌سازی ویدئو رخ داد.";
+
+
+          uploadProgressText.textContent =
+            "خطا";
+
+
+          uploadProgressPercent.textContent =
+            "✕";
+
 
         } finally {
 
           sourceSubmit.disabled =
             false;
         }
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
+       REPLACE BUTTON
+    ========================= */
+
+    replaceVideoButton.addEventListener(
+      "click",
+      () => {
+
+
+        if (
+          role !== "host"
+        ) {
+
+          return;
+        }
+
+
+        sourcePanel.classList.remove(
+          "hidden"
+        );
+
+
+        sourcePanelTitle.textContent =
+          "تعویض ویدئو";
+
+
+        sourceStatus.textContent =
+          "ویدئوی جدید را انتخاب کن.";
+
+
+        hideUploadProgress();
+
+
+        fileInput.value =
+          "";
+
+        urlInput.value =
+          "";
+
+
+        sourceMode =
+          "upload";
+
+
+        uploadTab.classList.add(
+          "active"
+        );
+
+        urlTab.classList.remove(
+          "active"
+        );
+
+
+        uploadSource.classList.remove(
+          "hidden"
+        );
+
+        urlSource.classList.add(
+          "hidden"
+        );
+
+      }
+    );
+
+
+    /* =========================
        PLAY
-    --------------------------------- */
+    ========================= */
 
     playButton.addEventListener(
       "click",
       () => {
 
+
         if (
           role !== "host" ||
           !currentSource
         ) {
+
           return;
         }
+
 
         if (
           video.paused
         ) {
 
+
           video
             .play()
-            .then(() => {
+            .then(
+              () => {
 
-              sendPlayback();
+                sendPlayback();
 
-            })
+              }
+            )
             .catch(
               error => {
 
@@ -2526,33 +3220,41 @@
                   "Play error:",
                   error
                 );
+
               }
             );
 
+
         } else {
+
 
           video.pause();
 
           sendPlayback();
+
         }
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        BACK 10
-    --------------------------------- */
+    ========================= */
 
     back10.addEventListener(
       "click",
       () => {
 
+
         if (
           role !== "host" ||
           !currentSource
         ) {
+
           return;
         }
+
 
         video.currentTime =
           Math.max(
@@ -2561,32 +3263,39 @@
             10
           );
 
+
         sendPlayback();
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        FORWARD 10
-    --------------------------------- */
+    ========================= */
 
     forward10.addEventListener(
       "click",
       () => {
 
+
         if (
           role !== "host" ||
           !currentSource
         ) {
+
           return;
         }
+
 
         const max =
           Number.isFinite(
             video.duration
           )
             ? video.duration
-            : video.currentTime + 10;
+            : video.currentTime +
+              10;
+
 
         video.currentTime =
           Math.min(
@@ -2595,18 +3304,21 @@
             10
           );
 
+
         sendPlayback();
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        PROGRESS
-    --------------------------------- */
+    ========================= */
 
     progress.addEventListener(
       "input",
       () => {
+
 
         if (
           role !== "host" ||
@@ -2616,8 +3328,10 @@
           ) ||
           video.duration <= 0
         ) {
+
           return;
         }
+
 
         video.currentTime =
           (
@@ -2626,6 +3340,7 @@
             ) / 100
           ) *
           video.duration;
+
       }
     );
 
@@ -2634,6 +3349,7 @@
       "change",
       () => {
 
+
         if (
           role === "host" &&
           currentSource
@@ -2641,17 +3357,19 @@
 
           sendPlayback();
         }
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        VIDEO EVENTS
-    --------------------------------- */
+    ========================= */
 
     video.addEventListener(
       "loadedmetadata",
       () => {
+
 
         if (
           Number.isFinite(
@@ -2663,9 +3381,12 @@
             formatTime(
               video.duration
             );
+
         }
 
+
         updateControls();
+
       }
     );
 
@@ -2673,6 +3394,7 @@
     video.addEventListener(
       "timeupdate",
       () => {
+
 
         if (
           Number.isFinite(
@@ -2687,12 +3409,15 @@
               video.duration
             ) *
             100;
+
         }
+
 
         currentTime.textContent =
           formatTime(
             video.currentTime
           );
+
       }
     );
 
@@ -2701,7 +3426,9 @@
       "play",
       () => {
 
+
         updateControls();
+
 
         if (
           role === "host" &&
@@ -2710,6 +3437,7 @@
 
           sendPlayback();
         }
+
       }
     );
 
@@ -2718,7 +3446,9 @@
       "pause",
       () => {
 
+
         updateControls();
+
 
         if (
           role === "host" &&
@@ -2727,6 +3457,7 @@
 
           sendPlayback();
         }
+
       }
     );
 
@@ -2735,29 +3466,40 @@
       "error",
       () => {
 
+
         console.error(
           "Video error:",
           video.error
         );
 
-        if (currentSource) {
+
+        if (
+          currentSource
+        ) {
 
           sourceStatus.textContent =
-            "این ویدئو توسط مرورگر قابل پخش نیست یا لینک مستقیم نیست.";
+            "این ویدئو قابل پخش نیست یا لینک مستقیم و معتبر نیست.";
+
+          sourcePanel.classList.remove(
+            "hidden"
+          );
         }
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        FULLSCREEN
-    --------------------------------- */
+    ========================= */
 
     fullscreenButton.addEventListener(
       "click",
       async () => {
 
+
         try {
+
 
           if (
             document.fullscreenElement
@@ -2768,7 +3510,9 @@
           } else {
 
             await videoStage.requestFullscreen();
+
           }
+
 
         } catch (error) {
 
@@ -2776,48 +3520,61 @@
             "Fullscreen error:",
             error
           );
+
         }
+
       }
     );
 
 
-    /* ---------------------------------
+    /* =========================
        CHAT
-    --------------------------------- */
+    ========================= */
 
     chatForm.addEventListener(
       "submit",
       event => {
 
+
         event.preventDefault();
 
+
         if (!socket) {
+
           return;
         }
+
 
         const text =
           chatInput.value.trim();
 
+
         if (!text) {
+
           return;
         }
+
 
         socket.emit(
           "chat",
           text
         );
 
+
         chatInput.value =
           "";
+
       }
     );
 
 
-    /* ---------------------------------
-       INITIAL
-    --------------------------------- */
+    /* =========================
+       INITIAL STATE
+    ========================= */
 
     updateControls();
+
+    updateReplaceButton();
 
   </script>
 
