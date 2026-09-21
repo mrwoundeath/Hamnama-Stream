@@ -1,27 +1,15 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <title>باهم ببینیم</title>
-
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2314141a'/%3E%3Crect x='18' y='22' width='64' height='56' rx='12' fill='%236c63ff'/%3E%3Cpath d='M43 37L66 50L43 63Z' fill='white'/%3E%3C/svg%3E"
-  >
+  <title>باهم ببینیم - Stream</title>
 
   <script src="/socket.io/socket.io.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
 
   <style>
-
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -29,21 +17,19 @@
 
     html,
     body {
+      margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
-      margin: 0;
-      background: #08080c;
-      color: white;
-      font-family: Tahoma, Arial, sans-serif;
-    }
-
-    body {
+      background: #08090d;
+      color: #fff;
+      font-family: Arial, Tahoma, sans-serif;
       overflow: hidden;
     }
 
     button,
     input {
-      font-family: inherit;
+      font: inherit;
     }
 
     button {
@@ -52,136 +38,98 @@
     }
 
     .screen {
+      position: fixed;
+      inset: 0;
       width: 100%;
       height: 100%;
-      display: none;
-    }
-
-    .screen.active {
-      display: flex;
+      background: #08090d;
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* =========================
-       INTRO
-    ========================= */
+    /* INTRO */
 
     #intro {
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-
-      background:
-        radial-gradient(
-          circle at center,
-          #20202c 0%,
-          #0b0b10 58%,
-          #07070a 100%
-        );
-    }
-
-    .intro-logo {
-      width: 95px;
-      height: 95px;
-
-      border-radius: 28px;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
-      background: #6c63ff;
-
-      box-shadow:
-        0 20px 70px rgba(108, 99, 255, .35);
-
-      animation: introLogo .7s ease;
+      background:
+        radial-gradient(circle at center, #20253d 0%, #0b0d14 45%, #050609 100%);
     }
 
-    .intro-logo::after {
-      content: "";
+    .intro-box {
+      text-align: center;
+      animation: introIn .7s ease;
+    }
 
-      width: 0;
-      height: 0;
-
-      border-top: 19px solid transparent;
-      border-bottom: 19px solid transparent;
-      border-left: 31px solid white;
-
-      margin-left: 7px;
+    .intro-logo {
+      width: 90px;
+      height: 90px;
+      border-radius: 25px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #7c5cff, #3b82f6);
+      font-size: 40px;
+      box-shadow: 0 15px 50px rgba(75, 80, 255, .35);
     }
 
     .intro-title {
-      margin-top: 22px;
-
+      margin-top: 20px;
       font-size: 28px;
-      font-weight: 900;
+      font-weight: 800;
     }
 
     .intro-subtitle {
       margin-top: 8px;
-
-      color: #92929d;
+      color: #9ca3af;
       font-size: 14px;
     }
 
-    @keyframes introLogo {
-
+    @keyframes introIn {
       from {
         opacity: 0;
-        transform: scale(.7);
+        transform: scale(.9);
       }
 
       to {
         opacity: 1;
         transform: scale(1);
       }
-
     }
 
-    /* =========================
-       LOGIN
-    ========================= */
+    /* LOGIN */
 
     #login {
+      display: flex;
       align-items: center;
       justify-content: center;
-
       padding: 20px;
+      overflow-y: auto;
     }
 
     .login-card {
       width: min(430px, 100%);
-
-      padding: 28px;
-
-      background: #15151c;
-
-      border: 1px solid #292932;
-
-      border-radius: 24px;
-
-      box-shadow:
-        0 25px 80px rgba(0,0,0,.45);
+      padding: 30px;
+      border-radius: 25px;
+      background: rgba(20, 23, 33, .95);
+      border: 1px solid #292d3a;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, .45);
     }
 
     .login-card h1 {
-      margin: 0 0 8px;
-
-      font-size: 25px;
+      margin: 0;
+      font-size: 27px;
     }
 
     .login-card p {
-      margin: 0 0 24px;
-
-      color: #9999a5;
-
+      color: #9ca3af;
       font-size: 14px;
-
       line-height: 1.8;
+      margin: 10px 0 25px;
     }
 
     .field {
@@ -190,633 +138,421 @@
 
     .field label {
       display: block;
-
       margin-bottom: 7px;
-
-      color: #bdbdc7;
-
+      color: #d1d5db;
       font-size: 13px;
     }
 
     .field input {
       width: 100%;
       height: 52px;
-
-      padding: 0 15px;
-
-      border: 1px solid #30303a;
       border-radius: 14px;
-
+      border: 1px solid #303542;
+      background: #10131b;
+      color: #fff;
       outline: none;
-
-      background: #0d0d12;
-
-      color: white;
+      padding: 0 15px;
+      direction: rtl;
     }
 
     .field input:focus {
-      border-color: #6c63ff;
+      border-color: #725cff;
+      box-shadow: 0 0 0 3px rgba(114, 92, 255, .12);
     }
 
-    .primary {
+    .primary-btn {
       width: 100%;
       height: 52px;
-
-      margin-top: 8px;
-
+      margin-top: 7px;
       border-radius: 14px;
-
-      background: #6c63ff;
-
-      color: white;
-
+      background: linear-gradient(135deg, #765cff, #4f46e5);
+      color: #fff;
       font-weight: 800;
     }
 
-    .primary:disabled {
+    .primary-btn:disabled {
       opacity: .55;
+      cursor: not-allowed;
     }
 
-    .login-error {
-      min-height: 20px;
-
+    .error {
+      min-height: 22px;
       margin-top: 12px;
-
       color: #ff7777;
-
       font-size: 13px;
+      line-height: 1.6;
     }
 
-    /* =========================
-       ROOM
-    ========================= */
+    /* APP */
 
-    #room {
+    #app {
+      display: flex;
       flex-direction: column;
-
-      background: #08080c;
     }
 
     .topbar {
-      height: 62px;
-      min-height: 62px;
-
-      padding: 0 14px;
-
+      flex: 0 0 64px;
+      height: 64px;
+      padding: 0 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-
-      background: #121218;
-
-      border-bottom: 1px solid #282830;
+      border-bottom: 1px solid #222632;
+      background: #0d0f15;
+      z-index: 10;
     }
 
     .brand {
-      min-width: 0;
-
-      display: flex;
-      align-items: center;
-
-      gap: 9px;
-    }
-
-    .mini-logo {
-      width: 36px;
-      height: 36px;
-
-      flex-shrink: 0;
-
-      border-radius: 11px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background: #6c63ff;
-    }
-
-    .mini-logo::after {
-      content: "";
-
-      width: 0;
-      height: 0;
-
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
-      border-left: 13px solid white;
-
-      margin-left: 3px;
-    }
-
-    .brand-title {
-      font-size: 14px;
       font-weight: 800;
+      font-size: 17px;
     }
 
     .room-info {
-      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #aeb4c2;
+      font-size: 12px;
+    }
 
-      color: #858590;
-
-      font-size: 11px;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .room-code {
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: #191d28;
+      color: #fff;
+      direction: ltr;
+      font-weight: 700;
     }
 
     .role-badge {
-      padding: 7px 11px;
-
-      border-radius: 10px;
-
-      background: #23232d;
-
-      color: #bcb8ff;
-
+      padding: 6px 9px;
+      border-radius: 8px;
       font-size: 11px;
-
-      white-space: nowrap;
+      font-weight: 800;
     }
 
-    .content {
-      flex: 1;
+    .host-badge {
+      background: rgba(118, 92, 255, .18);
+      color: #a99aff;
+    }
 
+    .guest-badge {
+      background: rgba(59, 130, 246, .15);
+      color: #70a9ff;
+    }
+
+    .main {
+      flex: 1;
       min-height: 0;
-
-      display: flex;
-
-      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      direction: ltr;
     }
 
-    /* =========================
-       VIDEO
-    ========================= */
-
-    .video-section {
-      flex: 1;
-
+    .video-side {
+      position: relative;
       min-width: 0;
       min-height: 0;
-
+      background: #030405;
       display: flex;
       flex-direction: column;
-
-      background: #000;
+      direction: rtl;
     }
 
-    .video-stage {
-      flex: 1;
-
-      min-height: 0;
-
+    .video-container {
       position: relative;
-
+      flex: 1;
+      min-height: 0;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
-
-      background: #000;
-
       overflow: hidden;
     }
 
     video {
+      display: block;
       width: 100%;
       height: 100%;
-
-      display: block;
-
-      background: #000;
-
       object-fit: contain;
+      background: #000;
     }
 
     .empty-state {
       position: absolute;
-
       inset: 0;
-
-      z-index: 2;
-
       display: flex;
-
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-
-      flex-direction: column;
-
       padding: 25px;
-
       text-align: center;
-
-      background:
-        radial-gradient(
-          circle at center,
-          #17171f 0%,
-          #050507 70%
-        );
+      pointer-events: none;
     }
 
     .empty-icon {
-      width: 72px;
-      height: 72px;
-
-      margin-bottom: 17px;
-
-      border-radius: 22px;
-
+      width: 70px;
+      height: 70px;
+      border-radius: 20px;
+      background: #151821;
       display: flex;
       align-items: center;
       justify-content: center;
-
-      background: #1d1d26;
-
       font-size: 30px;
+      margin-bottom: 15px;
     }
 
     .empty-title {
-      font-size: 18px;
       font-weight: 800;
+      font-size: 17px;
     }
 
     .empty-text {
-      max-width: 400px;
-
-      margin-top: 8px;
-
-      color: #858590;
-
+      color: #8e95a4;
       font-size: 13px;
-
-      line-height: 1.8;
+      margin-top: 8px;
+      line-height: 1.7;
+      max-width: 350px;
     }
 
-    /* =========================
-       REPLACE BUTTON
-    ========================= */
-
-    .replace-video-button {
-      position: absolute;
-
-      top: 14px;
-      right: 14px;
-
-      z-index: 20;
-
-      padding: 10px 14px;
-
-      border-radius: 12px;
-
-      background: rgba(20,20,28,.94);
-
-      border: 1px solid #3a3a46;
-
-      color: white;
-
-      font-size: 12px;
-
-      font-weight: 700;
-
-      box-shadow:
-        0 8px 30px rgba(0,0,0,.35);
-    }
-
-    .replace-video-button:hover {
-      background: #6c63ff;
-    }
-
-    /* =========================
-       SOURCE PANEL
-    ========================= */
+    /* SOURCE PANEL */
 
     .source-panel {
       position: absolute;
-
-      z-index: 30;
-
-      left: 50%;
-      top: 50%;
-
-      transform: translate(-50%, -50%);
-
-      width: min(470px, calc(100% - 30px));
-
-      max-height: calc(100% - 30px);
-
-      overflow-y: auto;
-
-      padding: 20px;
-
-      border: 1px solid #30303a;
-
-      border-radius: 20px;
-
-      background: rgba(18,18,24,.98);
-
-      box-shadow:
-        0 25px 80px rgba(0,0,0,.6);
+      left: 15px;
+      right: 15px;
+      bottom: 15px;
+      z-index: 5;
+      background: rgba(13, 15, 22, .97);
+      border: 1px solid #303442;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, .5);
     }
 
-    .source-panel h2 {
-      margin: 0 0 6px;
-
-      font-size: 19px;
-    }
-
-    .source-panel p {
-      margin: 0 0 17px;
-
-      color: #888894;
-
-      font-size: 12px;
-
-      line-height: 1.7;
+    .source-panel-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 13px;
     }
 
     .source-tabs {
       display: flex;
-
-      gap: 7px;
-
-      margin-bottom: 13px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .source-tab {
       flex: 1;
-
-      padding: 10px 7px;
-
-      border-radius: 11px;
-
-      background: #23232c;
-
-      color: #aaaab5;
-
+      height: 40px;
+      border-radius: 10px;
+      background: #181b24;
+      color: #aeb4c2;
       font-size: 12px;
     }
 
     .source-tab.active {
-      background: #6c63ff;
-
-      color: white;
-    }
-
-    .file-label {
-      width: 100%;
-      min-height: 48px;
-
-      padding: 10px;
-
-      border: 1px dashed #444450;
-
-      border-radius: 12px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background: #0c0c11;
-
-      color: #aaaab5;
-
-      font-size: 13px;
-
-      text-align: center;
-
-      cursor: pointer;
-    }
-
-    .file-label input {
-      display: none;
+      background: #6652dc;
+      color: #fff;
     }
 
     .source-input {
       width: 100%;
-      height: 48px;
-
-      padding: 0 12px;
-
-      border: 1px solid #30303a;
-
-      border-radius: 12px;
-
+      height: 46px;
+      border: 1px solid #303442;
+      border-radius: 11px;
       outline: none;
-
-      background: #0c0c11;
-
-      color: white;
-
+      background: #090b10;
+      color: #fff;
+      padding: 0 12px;
       direction: ltr;
-
       text-align: left;
     }
 
     .source-input:focus {
-      border-color: #6c63ff;
+      border-color: #725cff;
     }
 
-    .source-submit {
+    .file-label {
       width: 100%;
-      height: 48px;
+      min-height: 90px;
+      border: 1px dashed #424758;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #aeb4c2;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 15px;
+    }
 
+    .file-label strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    #videoFile {
+      display: none;
+    }
+
+    .source-actions {
+      display: flex;
+      gap: 8px;
       margin-top: 12px;
+    }
 
-      border-radius: 12px;
+    .source-actions button {
+      flex: 1;
+      height: 44px;
+      border-radius: 11px;
+    }
 
-      background: #6c63ff;
+    .cancel-btn {
+      background: #1a1d26;
+      color: #c8ccd5;
+    }
 
-      color: white;
-
+    .confirm-btn {
+      background: #6652dc;
+      color: #fff;
       font-weight: 800;
     }
 
-    .source-submit:disabled {
-      opacity: .55;
+    .confirm-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
     }
 
     .source-status {
-      min-height: 18px;
-
+      min-height: 20px;
       margin-top: 9px;
-
-      color: #8f8f9b;
-
-      font-size: 11px;
-
-      text-align: center;
+      font-size: 12px;
+      color: #9da4b3;
+      line-height: 1.6;
     }
 
-    /* =========================
-       PROGRESS
-    ========================= */
+    /* UPLOAD */
 
     .upload-progress {
-      margin-top: 14px;
+      margin-top: 12px;
     }
 
-    .upload-progress-bar {
-      width: 100%;
+    .upload-progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #aeb4c2;
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
       height: 7px;
-
-      overflow: hidden;
-
       border-radius: 20px;
-
-      background: #292933;
+      background: #20232d;
+      overflow: hidden;
     }
 
-    .upload-progress-fill {
+    .progress-fill {
       width: 0%;
       height: 100%;
-
-      border-radius: 20px;
-
-      background: #6c63ff;
-
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6652dc, #8b78ff);
       transition: width .15s ease;
     }
 
-    .upload-progress-info {
-      display: flex;
-
-      justify-content: space-between;
-
-      margin-top: 6px;
-
-      color: #92929d;
-
-      font-size: 11px;
-    }
-
-    /* =========================
-       CONTROLS
-    ========================= */
+    /* CONTROLS */
 
     .controls {
-      padding: 8px 11px 10px;
-
-      background: #101015;
-
-      border-top: 1px solid #23232b;
+      flex: 0 0 auto;
+      padding: 10px 13px 13px;
+      background: #090b10;
+      border-top: 1px solid #1e222c;
     }
 
-    .progress-row {
+    .timeline {
+      width: 100%;
+      height: 6px;
+      margin-bottom: 9px;
+      accent-color: #765cff;
+      cursor: pointer;
+    }
+
+    .control-row {
       display: flex;
-
       align-items: center;
-
-      gap: 8px;
-
-      direction: ltr;
+      gap: 7px;
     }
 
-    .time {
-      width: 42px;
-
-      color: #9999a5;
-
-      font-size: 10px;
-
-      text-align: center;
-    }
-
-    .progress {
-      flex: 1;
-
-      height: 4px;
-
-      accent-color: #6c63ff;
-    }
-
-    .control-buttons {
-      display: flex;
-
-      align-items: center;
-      justify-content: center;
-
-      gap: 8px;
-
-      margin-top: 7px;
-    }
-
-    .control-button {
-      width: 40px;
-      height: 34px;
-
+    .control-btn {
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
-
-      background: #202027;
-
-      color: #ddd;
-
-      font-size: 13px;
+      background: #181b23;
+      color: #fff;
+      font-size: 16px;
     }
 
-    .control-button.play {
-      width: 46px;
-
-      background: #6c63ff;
-
-      color: white;
+    .control-btn:active {
+      transform: scale(.96);
     }
 
-    .control-button:disabled,
-    .progress:disabled {
-      opacity: .35;
-
-      cursor: default;
+    .time-text {
+      direction: ltr;
+      color: #a9afbc;
+      font-size: 11px;
+      margin-right: auto;
+      white-space: nowrap;
     }
 
-    /* =========================
-       CHAT
-    ========================= */
+    .replace-btn {
+      height: 38px;
+      padding: 0 11px;
+      border-radius: 10px;
+      background: #181b23;
+      color: #cdd1da;
+      font-size: 11px;
+      display: none;
+    }
 
-    .chat {
-      width: 340px;
-      min-width: 280px;
+    /* CHAT */
 
+    .chat-side {
+      min-width: 0;
+      min-height: 0;
+      border-left: 1px solid #252935;
+      background: #0d0f15;
       display: flex;
       flex-direction: column;
-
-      background: #111116;
-
-      border-right: 1px solid #25252d;
+      direction: rtl;
     }
 
     .chat-header {
-      height: 53px;
-      min-height: 53px;
-
-      padding: 0 14px;
-
+      flex: 0 0 58px;
+      padding: 0 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-
-      border-bottom: 1px solid #282831;
+      border-bottom: 1px solid #232732;
     }
 
     .chat-title {
-      font-size: 14px;
       font-weight: 800;
+      font-size: 15px;
     }
 
-    .people {
-      color: #7e7e89;
-
+    .users {
+      color: #8e95a4;
       font-size: 11px;
     }
 
     .messages {
       flex: 1;
-
       min-height: 0;
-
       overflow-y: auto;
-
-      padding: 13px;
+      padding: 15px;
     }
 
     .message {
@@ -824,823 +560,443 @@
     }
 
     .message-name {
+      font-size: 10px;
+      color: #8e95a4;
       margin-bottom: 4px;
-
-      color: #8e88ff;
-
-      font-size: 11px;
     }
 
     .message-bubble {
       display: inline-block;
-
       max-width: 90%;
-
-      padding: 9px 11px;
-
-      border-radius: 12px;
-
-      background: #202027;
-
-      font-size: 12px;
-
+      background: #191c25;
+      border-radius: 12px 12px 12px 4px;
+      padding: 8px 10px;
+      font-size: 13px;
       line-height: 1.7;
-
       word-break: break-word;
     }
 
-    .message.self .message-bubble {
-      background: #4f49b8;
+    .message.me {
+      text-align: left;
+      direction: rtl;
     }
 
-    .chat-form {
+    .message.me .message-name {
+      text-align: left;
+    }
+
+    .message.me .message-bubble {
+      background: #5f4bd4;
+      border-radius: 12px 12px 4px 12px;
+      text-align: right;
+    }
+
+    .chat-input-area {
+      flex: 0 0 auto;
       padding: 10px;
-
+      border-top: 1px solid #232732;
       display: flex;
-
-      gap: 7px;
-
-      border-top: 1px solid #282831;
+      gap: 8px;
     }
 
     .chat-input {
       flex: 1;
-
       min-width: 0;
-
       height: 43px;
-
-      padding: 0 11px;
-
-      border: 1px solid #30303a;
-
-      border-radius: 12px;
-
+      border-radius: 11px;
+      border: 1px solid #2d313d;
+      background: #101219;
+      color: #fff;
       outline: none;
-
-      background: #0b0b0f;
-
-      color: white;
+      padding: 0 11px;
     }
 
     .chat-send {
       width: 43px;
       height: 43px;
+      border-radius: 11px;
+      background: #6652dc;
+      color: #fff;
+      font-size: 17px;
+    }
 
-      flex-shrink: 0;
+    /* WAITING */
 
+    .guest-waiting {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .72);
+      backdrop-filter: blur(4px);
+      padding: 20px;
+    }
+
+    .waiting-card {
+      max-width: 350px;
+      text-align: center;
+      padding: 25px;
+      border-radius: 18px;
+      background: #11141c;
+      border: 1px solid #303442;
+    }
+
+    .waiting-card h3 {
+      margin: 0 0 9px;
+    }
+
+    .waiting-card p {
+      margin: 0;
+      color: #969daa;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .guest-play-btn {
+      margin-top: 15px;
+      padding: 11px 18px;
+      border-radius: 10px;
+      background: #6652dc;
+      color: #fff;
+      font-weight: 700;
+      display: none;
+    }
+
+    /* TOAST */
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      bottom: 20px;
+      left: 50%;
+      transform: translate(-50%, 20px);
+      background: #1b1e28;
+      border: 1px solid #353947;
+      color: #fff;
       border-radius: 12px;
-
-      background: #6c63ff;
-
-      color: white;
+      padding: 10px 15px;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s ease;
+      max-width: calc(100% - 30px);
+      text-align: center;
     }
 
-    /* =========================
-       MOBILE
-    ========================= */
-
-    @media (max-width: 750px) {
-
-      .content {
-        flex-direction: column;
-      }
-
-      .video-section {
-        min-height: 55%;
-      }
-
-      .chat {
-        width: 100%;
-        min-width: 0;
-
-        height: 45%;
-
-        border-right: 0;
-
-        border-top: 1px solid #25252d;
-      }
-
-      .chat-header {
-        height: 43px;
-        min-height: 43px;
-      }
-
-      .messages {
-        padding: 9px;
-      }
-
-      .chat-form {
-        padding: 7px;
-      }
-
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
 
-    /* =========================
-       LANDSCAPE
-    ========================= */
+    .toast.success {
+      border-color: #356847;
+    }
 
-    @media (
-      orientation: landscape
-    ) and (max-height: 600px) {
+    .toast.error {
+      border-color: #713b3b;
+    }
 
-      .content {
-        flex-direction: row;
+    /* MOBILE */
+
+    @media (max-width: 800px) {
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) 270px;
       }
 
-      .video-section {
-        width: 68%;
-
-        min-height: 0;
+      .chat-side {
+        border-left: 0;
+        border-top: 1px solid #252935;
       }
 
-      .chat {
-        width: 32%;
-        min-width: 230px;
+      .topbar {
+        flex-basis: 56px;
+        height: 56px;
+      }
 
-        height: auto;
+      .brand {
+        font-size: 15px;
+      }
 
-        border-right: 1px solid #25252d;
+      .room-info {
+        gap: 4px;
+      }
+
+      .replace-btn {
+        display: block;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 600px) {
+      .topbar {
+        height: 48px;
+        flex-basis: 48px;
+      }
+
+      .main {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        grid-template-rows: 1fr;
+      }
+
+      .chat-side {
+        border-left: 1px solid #252935;
         border-top: 0;
       }
 
-      .chat-header {
-        height: 45px;
-        min-height: 45px;
-      }
-
-      .messages {
-        padding: 8px;
-      }
-
-      .chat-form {
-        padding: 7px;
-      }
-
       .controls {
-        padding: 5px 8px 6px;
+        padding: 6px 10px 8px;
       }
 
-      .control-buttons {
-        margin-top: 4px;
-      }
-
-      .control-button {
+      .control-btn {
+        height: 32px;
         width: 34px;
-        height: 29px;
       }
-
-      .control-button.play {
-        width: 39px;
-      }
-
     }
-
   </style>
 </head>
 
-
 <body>
 
-
-  <!-- =========================
-       INTRO
-  ========================= -->
-
-  <section
-    id="intro"
-    class="screen active"
-  >
-
-    <div class="intro-logo"></div>
-
-    <div class="intro-title">
-      باهم ببینیم
+  <!-- INTRO -->
+  <section id="intro" class="screen">
+    <div class="intro-box">
+      <div class="intro-logo">▶</div>
+      <div class="intro-title">باهم ببینیم</div>
+      <div class="intro-subtitle">همزمان تماشا کنید</div>
     </div>
-
-    <div class="intro-subtitle">
-      همزمان فیلم ببینید و چت کنید
-    </div>
-
   </section>
 
-
-  <!-- =========================
-       LOGIN
-  ========================= -->
-
-  <section
-    id="login"
-    class="screen"
-  >
-
+  <!-- LOGIN -->
+  <section id="login" class="screen hidden">
     <div class="login-card">
-
-      <h1>
-        ورود به روم
-      </h1>
-
+      <h1>ورود به روم</h1>
       <p>
-        اسمت و کد روم رو وارد کن تا وارد تماشای مشترک بشی.
+        یک نام و کد روم وارد کن. نفر اول Host می‌شود و نفر دوم به عنوان Guest وارد روم خواهد شد.
       </p>
 
-
       <div class="field">
-
-        <label>
-          نام
-        </label>
-
-        <input
-          id="nameInput"
-          type="text"
-          maxlength="30"
-          placeholder="مثلاً Taha"
-          autocomplete="off"
-        >
-
+        <label>نام شما</label>
+        <input id="nameInput" type="text" maxlength="30" placeholder="مثلاً Taha" autocomplete="off">
       </div>
 
-
       <div class="field">
-
-        <label>
-          کد روم
-        </label>
-
-        <input
-          id="roomInput"
-          type="text"
-          maxlength="30"
-          placeholder="مثلاً ABC123"
-          autocomplete="off"
-          dir="ltr"
-        >
-
+        <label>کد روم</label>
+        <input id="roomInput" type="text" maxlength="30" placeholder="مثلاً ABC123" autocomplete="off" dir="ltr">
       </div>
 
-
-      <button
-        id="joinButton"
-        class="primary"
-        type="button"
-      >
+      <button id="joinButton" class="primary-btn">
         ورود به روم
       </button>
 
-
-      <div
-        id="loginError"
-        class="login-error"
-      ></div>
-
+      <div id="loginError" class="error"></div>
     </div>
-
   </section>
 
-
-  <!-- =========================
-       ROOM
-  ========================= -->
-
-  <section
-    id="room"
-    class="screen"
-  >
-
+  <!-- APP -->
+  <section id="app" class="screen hidden">
 
     <header class="topbar">
+      <div class="brand">باهم ببینیم</div>
 
-      <div class="brand">
-
-        <div class="mini-logo"></div>
-
-        <div>
-
-          <div class="brand-title">
-            باهم ببینیم
-          </div>
-
-          <div
-            id="roomInfo"
-            class="room-info"
-          ></div>
-
-        </div>
-
+      <div class="room-info">
+        <span id="roleBadge" class="role-badge"></span>
+        <span>روم:</span>
+        <span id="roomCodeDisplay" class="room-code">---</span>
       </div>
-
-
-      <div
-        id="roleBadge"
-        class="role-badge"
-      >
-        مهمان
-      </div>
-
     </header>
 
+    <main class="main">
 
-    <main class="content">
+      <!-- VIDEO -->
+      <section class="video-side">
 
-
-      <!-- =========================
-           VIDEO SECTION
-      ========================= -->
-
-      <section class="video-section">
-
-
-        <div
-          id="videoStage"
-          class="video-stage"
-        >
-
-
-          <div
-            id="emptyState"
-            class="empty-state"
-          >
-
-            <div class="empty-icon">
-              🎬
-            </div>
-
-            <div
-              id="emptyTitle"
-              class="empty-title"
-            >
-              منتظر ویدئو
-            </div>
-
-            <div
-              id="emptyText"
-              class="empty-text"
-            >
-              میزبان هنوز ویدئویی انتخاب نکرده است.
-            </div>
-
-          </div>
-
+        <div class="video-container">
 
           <video
             id="video"
             playsinline
             preload="metadata"
+            controlslist="nodownload noplaybackrate"
           ></video>
 
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">🎬</div>
+            <div class="empty-title">هنوز ویدئویی انتخاب نشده</div>
+            <div class="empty-text">
+              وقتی Host یک ویدئو انتخاب کند، ویدئو برای هر دو نفر نمایش داده می‌شود.
+            </div>
+          </div>
 
-          <!-- =========================
-               REPLACE VIDEO
-          ========================= -->
+          <div id="guestWaiting" class="guest-waiting hidden">
+            <div class="waiting-card">
+              <h3 id="waitingTitle">منتظر ویدئو...</h3>
 
-          <button
-            id="replaceVideoButton"
-            class="replace-video-button hidden"
-            type="button"
-          >
-            🔄 تعویض ویدئو
-          </button>
+              <p id="waitingText">
+                Host هنوز ویدئویی انتخاب نکرده است.
+              </p>
 
+              <button id="guestPlayButton" class="guest-play-btn">
+                شروع پخش همگام
+              </button>
+            </div>
+          </div>
 
-          <!-- =========================
-               SOURCE PANEL
-          ========================= -->
+          <!-- SOURCE PANEL -->
+          <div id="sourcePanel" class="source-panel hidden">
 
-          <div
-            id="sourcePanel"
-            class="source-panel hidden"
-          >
-
-            <h2 id="sourcePanelTitle">
+            <div class="source-panel-title">
               انتخاب ویدئو
-            </h2>
-
-            <p>
-              فقط میزبان می‌تواند ویدئو را انتخاب یا جایگزین کند.
-            </p>
-
+            </div>
 
             <div class="source-tabs">
-
-              <button
-                id="uploadTab"
-                class="source-tab active"
-                type="button"
-              >
-                📁 فایل ویدئویی
+              <button id="uploadTab" class="source-tab active">
+                آپلود فایل
               </button>
 
-              <button
-                id="urlTab"
-                class="source-tab"
-                type="button"
-              >
-                🔗 لینک ویدئو
+              <button id="urlTab" class="source-tab">
+                لینک ویدئو
               </button>
-
             </div>
 
-
-            <!-- FILE -->
-
-            <div id="uploadSource">
-
-              <label class="file-label">
-
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="video/*"
-                >
-
-                انتخاب فایل ویدئویی
-
+            <div id="uploadBox">
+              <label for="videoFile" class="file-label">
+                <div>
+                  <strong id="fileLabelTitle">
+                    انتخاب فایل ویدئویی
+                  </strong>
+                  <span id="fileLabelText">
+                    MP4 و فرمت‌های ویدئویی قابل پخش مرورگر
+                  </span>
+                </div>
               </label>
 
+              <input
+                id="videoFile"
+                type="file"
+                accept="video/*,.mp4,.webm,.mov,.m4v,.ogg,.ogv"
+              >
             </div>
 
-
-            <!-- URL -->
-
-            <div
-              id="urlSource"
-              class="hidden"
-            >
-
+            <div id="urlBox" class="hidden">
               <input
-                id="urlInput"
+                id="videoUrl"
                 class="source-input"
                 type="url"
                 placeholder="https://example.com/video.mp4"
                 autocomplete="off"
-                dir="ltr"
+                spellcheck="false"
               >
-
             </div>
 
-
-            <button
-              id="sourceSubmit"
-              class="source-submit"
-              type="button"
-            >
-              شروع پخش
-            </button>
-
-
-            <div
-              id="sourceStatus"
-              class="source-status"
-            ></div>
-
-
-            <!-- UPLOAD PROGRESS -->
-
-            <div
-              id="uploadProgress"
-              class="upload-progress hidden"
-            >
-
-              <div class="upload-progress-bar">
-
-                <div
-                  id="uploadProgressFill"
-                  class="upload-progress-fill"
-                ></div>
-
+            <div id="uploadProgress" class="upload-progress hidden">
+              <div class="upload-progress-text">
+                <span id="uploadProgressText">در حال آپلود...</span>
+                <span id="uploadPercent">0%</span>
               </div>
 
-
-              <div class="upload-progress-info">
-
-                <span id="uploadProgressText">
-                  آماده‌سازی...
-                </span>
-
-                <span id="uploadProgressPercent">
-                  0%
-                </span>
-
+              <div class="progress-track">
+                <div id="uploadProgressFill" class="progress-fill"></div>
               </div>
+            </div>
 
+            <div id="sourceStatus" class="source-status"></div>
+
+            <div class="source-actions">
+              <button id="cancelSource" class="cancel-btn">
+                لغو
+              </button>
+
+              <button id="confirmSource" class="confirm-btn">
+                انتخاب و پخش
+              </button>
             </div>
 
           </div>
 
         </div>
 
-
-        <!-- =========================
-             CONTROLS
-        ========================= -->
-
+        <!-- CONTROLS -->
         <div class="controls">
 
+          <input
+            id="timeline"
+            class="timeline"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            step="0.1"
+          >
 
-          <div class="progress-row">
+          <div class="control-row">
 
-            <span
-              id="currentTime"
-              class="time"
-            >
-              00:00
-            </span>
-
-
-            <input
-              id="progress"
-              class="progress"
-              type="range"
-              min="0"
-              max="100"
-              value="0"
-              step="0.1"
-            >
-
-
-            <span
-              id="duration"
-              class="time"
-            >
-              00:00
-            </span>
-
-          </div>
-
-
-          <div class="control-buttons">
-
-            <button
-              id="back10"
-              class="control-button"
-              type="button"
-            >
-              ↶10
+            <button id="backButton" class="control-btn" title="10 ثانیه عقب">
+              ↶
             </button>
 
-
-            <button
-              id="playButton"
-              class="control-button play"
-              type="button"
-            >
+            <button id="playButton" class="control-btn" title="پخش / توقف">
               ▶
             </button>
 
-
-            <button
-              id="forward10"
-              class="control-button"
-              type="button"
-            >
-              10↷
+            <button id="forwardButton" class="control-btn" title="10 ثانیه جلو">
+              ↷
             </button>
 
+            <span id="timeText" class="time-text">
+              00:00 / 00:00
+            </span>
 
-            <button
-              id="fullscreenButton"
-              class="control-button"
-              type="button"
-            >
+            <button id="replaceButton" class="replace-btn">
+              تعویض ویدئو
+            </button>
+
+            <button id="fullscreenButton" class="control-btn" title="تمام صفحه">
               ⛶
             </button>
 
           </div>
-
         </div>
 
       </section>
 
-
-      <!-- =========================
-           CHAT
-      ========================= -->
-
-      <aside class="chat">
-
+      <!-- CHAT -->
+      <aside class="chat-side">
 
         <div class="chat-header">
-
-          <div class="chat-title">
-            چت
-          </div>
-
-          <div
-            id="people"
-            class="people"
-          >
+          <div class="chat-title">چت</div>
+          <div id="usersText" class="users">
             0 نفر
           </div>
-
         </div>
 
+        <div id="messages" class="messages"></div>
 
-        <div
-          id="messages"
-          class="messages"
-        ></div>
-
-
-        <form
-          id="chatForm"
-          class="chat-form"
-        >
-
+        <div class="chat-input-area">
           <input
             id="chatInput"
             class="chat-input"
+            type="text"
             maxlength="500"
-            placeholder="پیامت رو بنویس..."
+            placeholder="پیامت را بنویس..."
             autocomplete="off"
           >
 
-
-          <button
-            class="chat-send"
-            type="submit"
-          >
+          <button id="chatSend" class="chat-send">
             ➤
           </button>
-
-        </form>
+        </div>
 
       </aside>
 
     </main>
-
   </section>
 
-
-  <!-- =========================
-       JAVASCRIPT
-  ========================= -->
+  <div id="toast" class="toast"></div>
 
   <script>
-
-
-    /* =========================
-       ELEMENTS
-    ========================= */
-
-    const intro =
-      document.getElementById("intro");
-
-    const login =
-      document.getElementById("login");
-
-    const room =
-      document.getElementById("room");
-
-    const nameInput =
-      document.getElementById("nameInput");
-
-    const roomInput =
-      document.getElementById("roomInput");
-
-    const joinButton =
-      document.getElementById("joinButton");
-
-    const loginError =
-      document.getElementById("loginError");
-
-    const roomInfo =
-      document.getElementById("roomInfo");
-
-    const roleBadge =
-      document.getElementById("roleBadge");
-
-    const videoStage =
-      document.getElementById("videoStage");
-
-    const video =
-      document.getElementById("video");
-
-    const emptyState =
-      document.getElementById("emptyState");
-
-    const emptyTitle =
-      document.getElementById("emptyTitle");
-
-    const emptyText =
-      document.getElementById("emptyText");
-
-    const replaceVideoButton =
-      document.getElementById(
-        "replaceVideoButton"
-      );
-
-    const sourcePanel =
-      document.getElementById("sourcePanel");
-
-    const sourcePanelTitle =
-      document.getElementById(
-        "sourcePanelTitle"
-      );
-
-    const uploadTab =
-      document.getElementById("uploadTab");
-
-    const urlTab =
-      document.getElementById("urlTab");
-
-    const uploadSource =
-      document.getElementById("uploadSource");
-
-    const urlSource =
-      document.getElementById("urlSource");
-
-    const fileInput =
-      document.getElementById("fileInput");
-
-    const urlInput =
-      document.getElementById("urlInput");
-
-    const sourceSubmit =
-      document.getElementById(
-        "sourceSubmit"
-      );
-
-    const sourceStatus =
-      document.getElementById(
-        "sourceStatus"
-      );
-
-    const uploadProgress =
-      document.getElementById(
-        "uploadProgress"
-      );
-
-    const uploadProgressFill =
-      document.getElementById(
-        "uploadProgressFill"
-      );
-
-    const uploadProgressText =
-      document.getElementById(
-        "uploadProgressText"
-      );
-
-    const uploadProgressPercent =
-      document.getElementById(
-        "uploadProgressPercent"
-      );
-
-    const playButton =
-      document.getElementById(
-        "playButton"
-      );
-
-    const back10 =
-      document.getElementById(
-        "back10"
-      );
-
-    const forward10 =
-      document.getElementById(
-        "forward10"
-      );
-
-    const fullscreenButton =
-      document.getElementById(
-        "fullscreenButton"
-      );
-
-    const progress =
-      document.getElementById(
-        "progress"
-      );
-
-    const currentTime =
-      document.getElementById(
-        "currentTime"
-      );
-
-    const duration =
-      document.getElementById(
-        "duration"
-      );
-
-    const messages =
-      document.getElementById(
-        "messages"
-      );
-
-    const people =
-      document.getElementById(
-        "people"
-      );
-
-    const chatForm =
-      document.getElementById(
-        "chatForm"
-      );
-
-    const chatInput =
-      document.getElementById(
-        "chatInput"
-      );
-
+    "use strict";
 
     /* =========================
        STATE
@@ -1648,11 +1004,13 @@
 
     let socket = null;
 
+    let connected = false;
+
     let role = null;
 
-    let roomCode = null;
+    let roomCode = "";
 
-    let myName = null;
+    let myName = "";
 
     let users = [];
 
@@ -1662,29 +1020,83 @@
 
     let sourceMode = "upload";
 
+    let selectedFile = null;
+
     let applyingRemote = false;
+
+    let pendingRemotePlayback = null;
+
+    let guestNeedsPlayGesture = false;
+
+    let isChangingSource = false;
+
+    let toastTimer = null;
 
 
     /* =========================
-       SCREEN
+       ELEMENTS
     ========================= */
 
-    function showScreen(element) {
+    const intro = document.getElementById("intro");
+    const login = document.getElementById("login");
+    const app = document.getElementById("app");
 
-      document
-        .querySelectorAll(".screen")
-        .forEach(screen => {
+    const nameInput = document.getElementById("nameInput");
+    const roomInput = document.getElementById("roomInput");
+    const joinButton = document.getElementById("joinButton");
+    const loginError = document.getElementById("loginError");
 
-          screen.classList.remove(
-            "active"
-          );
+    const roleBadge = document.getElementById("roleBadge");
+    const roomCodeDisplay = document.getElementById("roomCodeDisplay");
 
-        });
+    const video = document.getElementById("video");
 
-      element.classList.add(
-        "active"
-      );
-    }
+    const emptyState = document.getElementById("emptyState");
+
+    const guestWaiting = document.getElementById("guestWaiting");
+    const waitingTitle = document.getElementById("waitingTitle");
+    const waitingText = document.getElementById("waitingText");
+    const guestPlayButton = document.getElementById("guestPlayButton");
+
+    const sourcePanel = document.getElementById("sourcePanel");
+    const uploadTab = document.getElementById("uploadTab");
+    const urlTab = document.getElementById("urlTab");
+
+    const uploadBox = document.getElementById("uploadBox");
+    const urlBox = document.getElementById("urlBox");
+
+    const videoFile = document.getElementById("videoFile");
+    const fileLabelTitle = document.getElementById("fileLabelTitle");
+    const fileLabelText = document.getElementById("fileLabelText");
+
+    const videoUrl = document.getElementById("videoUrl");
+
+    const uploadProgress = document.getElementById("uploadProgress");
+    const uploadProgressText = document.getElementById("uploadProgressText");
+    const uploadPercent = document.getElementById("uploadPercent");
+    const uploadProgressFill = document.getElementById("uploadProgressFill");
+
+    const sourceStatus = document.getElementById("sourceStatus");
+
+    const cancelSource = document.getElementById("cancelSource");
+    const confirmSource = document.getElementById("confirmSource");
+
+    const timeline = document.getElementById("timeline");
+
+    const backButton = document.getElementById("backButton");
+    const playButton = document.getElementById("playButton");
+    const forwardButton = document.getElementById("forwardButton");
+    const fullscreenButton = document.getElementById("fullscreenButton");
+    const replaceButton = document.getElementById("replaceButton");
+
+    const timeText = document.getElementById("timeText");
+
+    const messages = document.getElementById("messages");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
+    const usersText = document.getElementById("usersText");
+
+    const toast = document.getElementById("toast");
 
 
     /* =========================
@@ -1692,356 +1104,1296 @@
     ========================= */
 
     setTimeout(() => {
+      intro.classList.add("hidden");
+      login.classList.remove("hidden");
+      nameInput.focus();
+    }, 1000);
 
-      showScreen(login);
 
-    }, 1200);
+    /* =========================
+       TOAST
+    ========================= */
+
+    function showToast(text, type = "") {
+      clearTimeout(toastTimer);
+
+      toast.textContent = text;
+
+      toast.className = "toast show";
+
+      if (type) {
+        toast.classList.add(type);
+      }
+
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
 
 
     /* =========================
        SOCKET
     ========================= */
 
-    function startSocket() {
-
-      if (
-        typeof window.io !==
-        "function"
-      ) {
-
+    function connectSocket() {
+      if (typeof window.io !== "function") {
         loginError.textContent =
-          "Socket.IO از سرور دریافت نشد. صفحه را Refresh کن.";
-
+          "Socket.IO روی سرور در دسترس نیست. صفحه را Refresh کن.";
         return false;
       }
 
       try {
+        socket = window.io({
+          transports: ["websocket", "polling"],
+          reconnection: true
+        });
 
-        socket =
-          window.io({
-            transports: [
-              "websocket",
-              "polling"
-            ]
-          });
+        socket.on("connect", () => {
+          connected = true;
+
+          if (roomCode && myName) {
+            socket.emit("join-room", {
+              roomCode,
+              name: myName
+            });
+          }
+        });
+
+        socket.on("disconnect", () => {
+          connected = false;
+        });
+
+        socket.on("connect_error", error => {
+          console.error("Socket error:", error);
+
+          if (!app.classList.contains("hidden")) {
+            showToast(
+              "اتصال به سرور قطع شد. دوباره تلاش می‌شود.",
+              "error"
+            );
+          }
+        });
+
+        socket.on("room-error", message => {
+          joinButton.disabled = false;
+          loginError.textContent = message || "خطا در ورود به روم.";
+        });
+
+        socket.on("joined-room", data => {
+          role = data.role;
+          roomCode = data.roomCode;
+
+          users = Array.isArray(data.users)
+            ? data.users
+            : [];
+
+          currentSource = data.source || null;
+
+          updateRoleUI();
+          updateUsersUI();
+
+          login.classList.add("hidden");
+          app.classList.remove("hidden");
+
+          if (currentSource) {
+            loadSource(currentSource, false);
+
+            if (data.playback) {
+              pendingRemotePlayback = data.playback;
+
+              waitForMediaThenApplyPlayback(
+                data.playback
+              );
+            }
+          } else {
+            showWaiting();
+          }
+
+          updateReplaceButton();
+        });
+
+        socket.on("room-users", data => {
+          users = Array.isArray(data.users)
+            ? data.users
+            : [];
+
+          updateUsersUI();
+        });
+
+        socket.on("media-source", source => {
+          if (!source || !source.url) {
+            return;
+          }
+
+          loadSource(source, true);
+        });
+
+        socket.on("playback", state => {
+          if (!state) {
+            return;
+          }
+
+          if (role === "guest") {
+            pendingRemotePlayback = state;
+            waitForMediaThenApplyPlayback(state);
+          }
+        });
+
+        socket.on("host-changed", data => {
+          const newHostId = data?.hostId;
+
+          const me = users.find(
+            user => user.name === myName
+          );
+
+          /*
+           * Server will also send room-users.
+           * We use the socket id when available.
+           */
+          if (
+            socket &&
+            newHostId &&
+            newHostId === socket.id
+          ) {
+            role = "host";
+            updateRoleUI();
+            updateReplaceButton();
+
+            guestWaiting.classList.add("hidden");
+
+            showToast(
+              "Host خارج شد؛ حالا شما Host هستید.",
+              "success"
+            );
+          }
+        });
+
+        socket.on("chat", message => {
+          addMessage(message);
+        });
 
         return true;
 
       } catch (error) {
-
-        console.error(
-          error
-        );
+        console.error(error);
 
         loginError.textContent =
-          "خطا در اتصال به سرور.";
+          "اتصال به سرور با خطا مواجه شد.";
 
         return false;
       }
     }
 
-
-    const socketReady =
-      startSocket();
+    connectSocket();
 
 
-    if (socketReady) {
+    /* =========================
+       LOGIN
+    ========================= */
 
-      socket.on(
-        "connect",
-        () => {
+    joinButton.addEventListener("click", joinRoom);
 
-          console.log(
-            "Connected:",
-            socket.id
-          );
+    nameInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        roomInput.focus();
+      }
+    });
 
+    roomInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        joinRoom();
+      }
+    });
+
+    function joinRoom() {
+      loginError.textContent = "";
+
+      const name = String(nameInput.value || "")
+        .trim()
+        .slice(0, 30);
+
+      const code = String(roomInput.value || "")
+        .trim()
+        .toUpperCase();
+
+      if (!name) {
+        loginError.textContent =
+          "نامت را وارد کن.";
+        nameInput.focus();
+        return;
+      }
+
+      if (!code) {
+        loginError.textContent =
+          "کد روم را وارد کن.";
+        roomInput.focus();
+        return;
+      }
+
+      if (!socket) {
+        loginError.textContent =
+          "ارتباط با سرور برقرار نیست. صفحه را Refresh کن.";
+        return;
+      }
+
+      if (!connected) {
+        loginError.textContent =
+          "هنوز به سرور متصل نشده‌ای؛ چند لحظه صبر کن.";
+        return;
+      }
+
+      myName = name;
+      roomCode = code;
+
+      joinButton.disabled = true;
+      joinButton.textContent = "در حال ورود...";
+
+      socket.emit("join-room", {
+        roomCode: code,
+        name
+      });
+
+      setTimeout(() => {
+        if (app.classList.contains("hidden")) {
+          joinButton.disabled = false;
+          joinButton.textContent = "ورود به روم";
         }
-      );
-
-
-      socket.on(
-        "connect_error",
-        error => {
-
-          console.error(
-            "Socket error:",
-            error
-          );
-
-        }
-      );
-
+      }, 7000);
     }
 
 
     /* =========================
-       TIME
+       ROLE UI
     ========================= */
 
-    function formatTime(
-      seconds
-    ) {
+    function updateRoleUI() {
+      roomCodeDisplay.textContent = roomCode || "---";
 
-      if (
-        !Number.isFinite(
-          seconds
-        )
-      ) {
+      roleBadge.className = "role-badge";
 
-        return "00:00";
-      }
-
-      seconds =
-        Math.max(
-          0,
-          Math.floor(seconds)
-        );
-
-      const hours =
-        Math.floor(
-          seconds / 3600
-        );
-
-      const minutes =
-        Math.floor(
-          (seconds % 3600) /
-          60
-        );
-
-      const secs =
-        seconds % 60;
-
-
-      if (hours > 0) {
-
-        return (
-          String(hours)
-            .padStart(2, "0") +
-          ":" +
-          String(minutes)
-            .padStart(2, "0") +
-          ":" +
-          String(secs)
-            .padStart(2, "0")
-        );
-      }
-
-
-      return (
-        String(minutes)
-          .padStart(2, "0") +
-        ":" +
-        String(secs)
-          .padStart(2, "0")
-      );
-    }
-
-
-    /* =========================
-       UPLOAD PROGRESS
-    ========================= */
-
-    function setUploadProgress(
-      percent,
-      text
-    ) {
-
-      const value =
-        Math.max(
-          0,
-          Math.min(
-            100,
-            Number(percent) || 0
-          )
-        );
-
-
-      uploadProgress.classList.remove(
-        "hidden"
-      );
-
-
-      uploadProgressFill.style.width =
-        value + "%";
-
-
-      uploadProgressPercent.textContent =
-        Math.round(value) +
-        "%";
-
-
-      uploadProgressText.textContent =
-        text ||
-        "در حال آپلود...";
-    }
-
-
-    function hideUploadProgress() {
-
-      uploadProgress.classList.add(
-        "hidden"
-      );
-
-      uploadProgressFill.style.width =
-        "0%";
-
-      uploadProgressPercent.textContent =
-        "0%";
-
-      uploadProgressText.textContent =
-        "آماده‌سازی...";
-    }
-
-
-    /* =========================
-       UPDATE CONTROLS
-    ========================= */
-
-    function updateControls() {
-
-      const isHost =
-        role === "host";
-
-      const enabled =
-        isHost &&
-        !!currentSource;
-
-
-      playButton.disabled =
-        !enabled;
-
-      back10.disabled =
-        !enabled;
-
-      forward10.disabled =
-        !enabled;
-
-      progress.disabled =
-        !enabled;
-
-
-      playButton.textContent =
-        video.paused
-          ? "▶"
-          : "Ⅱ";
-    }
-
-
-    /* =========================
-       REPLACE BUTTON
-    ========================= */
-
-    function updateReplaceButton() {
-
-      if (
-        role === "host" &&
-        currentSource
-      ) {
-
-        replaceVideoButton.classList.remove(
-          "hidden"
-        );
-
+      if (role === "host") {
+        roleBadge.textContent = "HOST";
+        roleBadge.classList.add("host-badge");
       } else {
-
-        replaceVideoButton.classList.add(
-          "hidden"
-        );
+        roleBadge.textContent = "GUEST";
+        roleBadge.classList.add("guest-badge");
       }
-    }
-
-
-    /* =========================
-       EMPTY STATE
-    ========================= */
-
-    function updateEmptyState() {
-
-      emptyState.classList.remove(
-        "hidden"
-      );
-
-
-      if (
-        role === "host"
-      ) {
-
-        emptyTitle.textContent =
-          "ویدئو انتخاب نشده";
-
-        emptyText.textContent =
-          "یک فایل ویدئویی انتخاب کن یا لینک مستقیم ویدئو را وارد کن.";
-
-        sourcePanel.classList.remove(
-          "hidden"
-        );
-
-      } else {
-
-        emptyTitle.textContent =
-          "منتظر میزبان";
-
-        emptyText.textContent =
-          "وقتی میزبان ویدئو را انتخاب کند، ویدئو برای تو هم پخش می‌شود.";
-
-        sourcePanel.classList.add(
-          "hidden"
-        );
-      }
-
-
-      updateControls();
 
       updateReplaceButton();
     }
 
 
+    function updateUsersUI() {
+      const count = users.length;
+
+      usersText.textContent =
+        count + (count === 1 ? " نفر" : " نفر");
+    }
+
+
+    function updateReplaceButton() {
+      if (role === "host") {
+        replaceButton.style.display = "block";
+      } else {
+        replaceButton.style.display = "none";
+      }
+    }
+
+
     /* =========================
-       LOAD SOURCE
+       SOURCE PANEL
+    ========================= */
+
+    uploadTab.addEventListener("click", () => {
+      sourceMode = "upload";
+
+      uploadTab.classList.add("active");
+      urlTab.classList.remove("active");
+
+      uploadBox.classList.remove("hidden");
+      urlBox.classList.add("hidden");
+
+      sourceStatus.textContent = "";
+      resetUploadUI();
+    });
+
+
+    urlTab.addEventListener("click", () => {
+      sourceMode = "url";
+
+      urlTab.classList.add("active");
+      uploadTab.classList.remove("active");
+
+      urlBox.classList.remove("hidden");
+      uploadBox.classList.add("hidden");
+
+      sourceStatus.textContent = "";
+      resetUploadUI();
+
+      setTimeout(() => {
+        videoUrl.focus();
+      }, 50);
+    });
+
+
+    videoFile.addEventListener("change", () => {
+      selectedFile = videoFile.files?.[0] || null;
+
+      if (!selectedFile) {
+        fileLabelTitle.textContent =
+          "انتخاب فایل ویدئویی";
+
+        fileLabelText.textContent =
+          "MP4 و فرمت‌های ویدئویی قابل پخش مرورگر";
+
+        return;
+      }
+
+      fileLabelTitle.textContent =
+        selectedFile.name;
+
+      fileLabelText.textContent =
+        formatBytes(selectedFile.size);
+
+      sourceStatus.textContent =
+        "فایل انتخاب شد. روی «انتخاب و پخش» بزن.";
+    });
+
+
+    videoUrl.addEventListener("input", () => {
+      sourceStatus.textContent = "";
+    });
+
+
+    replaceButton.addEventListener("click", () => {
+      if (role !== "host") {
+        return;
+      }
+
+      openSourcePanel();
+    });
+
+
+    cancelSource.addEventListener("click", () => {
+      if (isChangingSource) {
+        return;
+      }
+
+      closeSourcePanel();
+    });
+
+
+    function openSourcePanel() {
+      sourcePanel.classList.remove("hidden");
+
+      sourceStatus.textContent = "";
+
+      selectedFile = null;
+      videoFile.value = "";
+
+      resetUploadUI();
+
+      if (currentSource) {
+        sourceStatus.textContent =
+          "ویدئوی جدید را انتخاب کن.";
+      }
+    }
+
+
+    function closeSourcePanel() {
+      sourcePanel.classList.add("hidden");
+      sourceStatus.textContent = "";
+
+      selectedFile = null;
+      videoFile.value = "";
+
+      resetUploadUI();
+    }
+
+
+    function resetUploadUI() {
+      uploadProgress.classList.add("hidden");
+
+      uploadProgressFill.style.width = "0%";
+
+      uploadPercent.textContent = "0%";
+
+      uploadProgressText.textContent =
+        "در حال آپلود...";
+    }
+
+
+    function setUploadProgress(percent, text) {
+      uploadProgress.classList.remove("hidden");
+
+      const safePercent =
+        Math.max(
+          0,
+          Math.min(100, Number(percent) || 0)
+        );
+
+      uploadProgressFill.style.width =
+        safePercent + "%";
+
+      uploadPercent.textContent =
+        Math.round(safePercent) + "%";
+
+      if (text) {
+        uploadProgressText.textContent = text;
+      }
+    }
+
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        return "حجم نامشخص";
+      }
+
+      const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB"
+      ];
+
+      let index = 0;
+      let value = bytes;
+
+      while (
+        value >= 1024 &&
+        index < units.length - 1
+      ) {
+        value /= 1024;
+        index++;
+      }
+
+      return value.toFixed(
+        index === 0 ? 0 : 1
+      ) + " " + units[index];
+    }
+
+
+    /* =========================
+       CONFIRM SOURCE
+    ========================= */
+
+    confirmSource.addEventListener(
+      "click",
+      async () => {
+
+        if (role !== "host") {
+          return;
+        }
+
+        if (!socket || !connected) {
+          sourceStatus.textContent =
+            "ارتباط با سرور برقرار نیست.";
+          return;
+        }
+
+        if (isChangingSource) {
+          return;
+        }
+
+        if (sourceMode === "upload") {
+          await handleUploadSource();
+        } else {
+          handleUrlSource();
+        }
+      }
+    );
+
+
+    /* =========================
+       URL SOURCE
+    ========================= */
+
+    function handleUrlSource() {
+      const rawUrl =
+        String(videoUrl.value || "").trim();
+
+      if (!rawUrl) {
+        sourceStatus.textContent =
+          "لینک ویدئو را وارد کن.";
+        videoUrl.focus();
+        return;
+      }
+
+      let parsedUrl;
+
+      try {
+        parsedUrl = new URL(rawUrl);
+      } catch (_) {
+        sourceStatus.textContent =
+          "لینک واردشده معتبر نیست.";
+        return;
+      }
+
+      if (
+        parsedUrl.protocol !== "http:" &&
+        parsedUrl.protocol !== "https:"
+      ) {
+        sourceStatus.textContent =
+          "فقط لینک HTTP یا HTTPS قابل استفاده است.";
+        return;
+      }
+
+      isChangingSource = true;
+      setSourceControlsDisabled(true);
+
+      sourceStatus.textContent =
+        "در حال بررسی و آماده‌سازی لینک...";
+
+      const source = {
+        type: "url",
+        url: parsedUrl.href,
+        name: "ویدئوی لینک",
+        mime: "",
+        version: Date.now()
+      };
+
+      /*
+       * اول روی خود Host ویدئو را تست می‌کنیم.
+       * فقط اگر واقعاً قابل بارگذاری باشد،
+       * منبع برای روم ارسال می‌شود.
+       */
+      testRemoteSource(source)
+        .then(() => {
+
+          socket.emit(
+            "set-source",
+            source
+          );
+
+          /*
+           * سرور باید media-source را برای همه
+           * ارسال کند. برای Host هم به همان event
+           * گوش می‌دهیم.
+           */
+          sourceStatus.textContent =
+            "لینک با موفقیت ثبت شد.";
+
+          isChangingSource = false;
+          setSourceControlsDisabled(false);
+
+          closeSourcePanel();
+
+          showToast(
+            "ویدئو با موفقیت جایگزین شد.",
+            "success"
+          );
+
+        })
+        .catch(error => {
+
+          console.error(
+            "Remote video test failed:",
+            error
+          );
+
+          sourceStatus.textContent =
+            getVideoErrorMessage(
+              error
+            );
+
+          isChangingSource = false;
+          setSourceControlsDisabled(false);
+        });
+    }
+
+
+    /* =========================
+       UPLOAD SOURCE
+    ========================= */
+
+    async function handleUploadSource() {
+
+      if (!selectedFile) {
+        sourceStatus.textContent =
+          "اول یک فایل ویدئویی انتخاب کن.";
+        return;
+      }
+
+      if (
+        !String(selectedFile.type || "")
+          .toLowerCase()
+          .startsWith("video/")
+      ) {
+        sourceStatus.textContent =
+          "این فایل به عنوان ویدئو شناسایی نشد.";
+        return;
+      }
+
+      isChangingSource = true;
+      setSourceControlsDisabled(true);
+
+      sourceStatus.textContent =
+        "در حال آپلود فایل...";
+
+      try {
+
+        const result =
+          await uploadVideo(selectedFile);
+
+        if (
+          !result ||
+          !result.ok ||
+          !result.url
+        ) {
+          throw new Error(
+            result?.error ||
+            "سرور لینک فایل را برنگرداند."
+          );
+        }
+
+        /*
+         * خیلی مهم:
+         * اینجا هنوز پیام موفقیت نده.
+         * ابتدا فایل آپلودشده را روی خود Host
+         * تست می‌کنیم.
+         */
+
+        const uploadedUrl =
+          new URL(
+            result.url,
+            window.location.origin
+          ).href;
+
+        const source = {
+          type: "upload",
+          url: uploadedUrl,
+          name:
+            result.name ||
+            selectedFile.name ||
+            "ویدئو",
+          mime:
+            result.mime ||
+            selectedFile.type ||
+            "",
+          version: Date.now()
+        };
+
+        sourceStatus.textContent =
+          "آپلود تمام شد؛ در حال بررسی ویدئو...";
+
+        await testLocalSource(
+          source
+        );
+
+        /*
+         * فقط بعد از اینکه خود ویدئو قابل
+         * بارگذاری بود، آن را به روم اعلام کن.
+         */
+
+        socket.emit(
+          "set-source",
+          source
+        );
+
+        sourceStatus.textContent =
+          "ویدئو آماده پخش شد.";
+
+        isChangingSource = false;
+        setSourceControlsDisabled(false);
+
+        closeSourcePanel();
+
+        showToast(
+          "ویدئو با موفقیت جایگزین شد.",
+          "success"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Upload/source error:",
+          error
+        );
+
+        sourceStatus.textContent =
+          getVideoErrorMessage(
+            error
+          );
+
+        isChangingSource = false;
+        setSourceControlsDisabled(false);
+      }
+    }
+
+
+    /* =========================
+       UPLOAD XHR
+    ========================= */
+
+    function uploadVideo(file) {
+      return new Promise(
+        (resolve, reject) => {
+
+          const xhr =
+            new XMLHttpRequest();
+
+          const formData =
+            new FormData();
+
+          formData.append(
+            "video",
+            file,
+            file.name
+          );
+
+          xhr.open(
+            "POST",
+            "/api/upload",
+            true
+          );
+
+          xhr.responseType = "json";
+
+          xhr.upload.onprogress =
+            event => {
+
+              if (
+                event.lengthComputable
+              ) {
+
+                const percent =
+                  (event.loaded /
+                    event.total) *
+                  100;
+
+                setUploadProgress(
+                  percent,
+                  "در حال آپلود ویدئو..."
+                );
+              }
+            };
+
+          xhr.upload.onload = () => {
+            setUploadProgress(
+              100,
+              "آپلود کامل شد؛ در حال بررسی..."
+            );
+          };
+
+          xhr.onload = () => {
+
+            let result =
+              xhr.response;
+
+            if (
+              !result &&
+              xhr.responseText
+            ) {
+              try {
+                result =
+                  JSON.parse(
+                    xhr.responseText
+                  );
+              } catch (_) {}
+            }
+
+            if (
+              xhr.status >= 200 &&
+              xhr.status < 300 &&
+              result
+            ) {
+              resolve(result);
+              return;
+            }
+
+            reject(
+              new Error(
+                result?.error ||
+                "آپلود فایل ناموفق بود. کد خطا: " +
+                xhr.status
+              )
+            );
+          };
+
+          xhr.onerror = () => {
+            reject(
+              new Error(
+                "ارتباط با سرور هنگام آپلود قطع شد."
+              )
+            );
+          };
+
+          xhr.onabort = () => {
+            reject(
+              new Error(
+                "آپلود لغو شد."
+              )
+            );
+          };
+
+          xhr.ontimeout = () => {
+            reject(
+              new Error(
+                "زمان آپلود تمام شد."
+              )
+            );
+          };
+
+          xhr.send(formData);
+        }
+      );
+    }
+
+
+    /* =========================
+       SOURCE TEST
+    ========================= */
+
+    function testLocalSource(source) {
+      return testVideoSource(
+        source,
+        true
+      );
+    }
+
+
+    function testRemoteSource(source) {
+      return testVideoSource(
+        source,
+        false
+      );
+    }
+
+
+    function testVideoSource(
+      source,
+      localSource
+    ) {
+
+      return new Promise(
+        (resolve, reject) => {
+
+          const testVideo =
+            document.createElement("video");
+
+          testVideo.muted = true;
+          testVideo.playsInline = true;
+          testVideo.preload = "metadata";
+
+          let finished = false;
+
+          let timer = null;
+
+          const cleanup = () => {
+
+            clearTimeout(timer);
+
+            testVideo.pause();
+
+            testVideo.removeAttribute(
+              "src"
+            );
+
+            testVideo.load();
+
+            testVideo.remove();
+          };
+
+
+          const success = () => {
+
+            if (finished) {
+              return;
+            }
+
+            finished = true;
+
+            cleanup();
+
+            resolve(true);
+          };
+
+
+          const failure = message => {
+
+            if (finished) {
+              return;
+            }
+
+            finished = true;
+
+            cleanup();
+
+            reject(
+              new Error(
+                message ||
+                "ویدئو قابل پخش نیست."
+              )
+            );
+          };
+
+
+          testVideo.addEventListener(
+            "loadedmetadata",
+            () => {
+
+              /*
+               * اگر duration صفر یا NaN باشد،
+               * ممکن است هنوز آماده نباشد.
+               */
+
+              if (
+                Number.isFinite(
+                  testVideo.duration
+                ) &&
+                testVideo.duration > 0
+              ) {
+                success();
+              }
+            },
+            { once: false }
+          );
+
+
+          testVideo.addEventListener(
+            "canplay",
+            () => {
+              success();
+            },
+            { once: true }
+          );
+
+
+          testVideo.addEventListener(
+            "error",
+            () => {
+
+              const code =
+                testVideo.error?.code;
+
+              if (
+                code === 4
+              ) {
+                failure(
+                  localSource
+                    ? "فایل آپلود شده توسط مرورگر قابل پخش نیست. بهتر است MP4 با H.264/AAC آپلود کنی."
+                    : "این لینک مستقیماً یک ویدئوی قابل پخش نیست یا سرور مقصد اجازه پخش مرورگری نمی‌دهد."
+                );
+              } else {
+                failure(
+                  "مرورگر نتوانست ویدئو را بارگذاری کند."
+                );
+              }
+            },
+            { once: true }
+          );
+
+
+          timer = setTimeout(
+            () => {
+
+              /*
+               * برای m3u8، این تست ساده کافی نیست.
+               * HLS را جداگانه بررسی می‌کنیم.
+               */
+
+              const url =
+                String(source.url)
+                  .toLowerCase();
+
+              const isHls =
+                url.includes(".m3u8") ||
+                String(source.mime || "")
+                  .toLowerCase()
+                  .includes(
+                    "mpegurl"
+                  );
+
+              if (
+                isHls &&
+                window.Hls &&
+                window.Hls.isSupported()
+              ) {
+
+                cleanup();
+
+                testHlsSource(
+                  source
+                )
+                  .then(resolve)
+                  .catch(reject);
+
+                return;
+              }
+
+              if (!finished) {
+
+                failure(
+                  localSource
+                    ? "ویدئو بعد از آپلود آماده پخش نشد. احتمالاً کدک فایل توسط مرورگر پشتیبانی نمی‌شود."
+                    : "لینک بعد از چند ثانیه قابل پخش نشد. مطمئن شو لینک مستقیم MP4/WebM یا m3u8 است."
+                );
+              }
+
+            },
+            12000
+          );
+
+
+          const url =
+            String(source.url);
+
+          const isHls =
+            url.toLowerCase()
+              .includes(".m3u8") ||
+            String(source.mime || "")
+              .toLowerCase()
+              .includes(
+                "mpegurl"
+              );
+
+          if (
+            isHls &&
+            window.Hls &&
+            window.Hls.isSupported()
+          ) {
+
+            cleanup();
+
+            testHlsSource(
+              source
+            )
+              .then(resolve)
+              .catch(reject);
+
+            return;
+          }
+
+          if (
+            isHls &&
+            testVideo.canPlayType(
+              "application/vnd.apple.mpegurl"
+            )
+          ) {
+            testVideo.src =
+              source.url;
+
+            testVideo.load();
+
+          } else {
+
+            testVideo.src =
+              source.url;
+
+            testVideo.load();
+          }
+
+          document.body.appendChild(
+            testVideo
+          );
+        }
+      );
+    }
+
+
+    function testHlsSource(source) {
+
+      return new Promise(
+        (resolve, reject) => {
+
+          if (
+            !window.Hls
+          ) {
+            reject(
+              new Error(
+                "پخش HLS در این مرورگر در دسترس نیست."
+              )
+            );
+
+            return;
+          }
+
+          const testVideo =
+            document.createElement("video");
+
+          testVideo.muted = true;
+          testVideo.playsInline = true;
+
+          const testHls =
+            new window.Hls({
+              enableWorker: true,
+              lowLatencyMode: false
+            });
+
+          let done = false;
+
+          const cleanup = () => {
+
+            try {
+              testHls.destroy();
+            } catch (_) {}
+
+            testVideo.pause();
+
+            testVideo.removeAttribute(
+              "src"
+            );
+
+            testVideo.load();
+
+            testVideo.remove();
+          };
+
+          const success = () => {
+
+            if (done) {
+              return;
+            }
+
+            done = true;
+
+            cleanup();
+
+            resolve(true);
+          };
+
+          const fail = message => {
+
+            if (done) {
+              return;
+            }
+
+            done = true;
+
+            cleanup();
+
+            reject(
+              new Error(
+                message ||
+                "HLS قابل پخش نیست."
+              )
+            );
+          };
+
+          testHls.on(
+            window.Hls.Events.MANIFEST_PARSED,
+            () => {
+              success();
+            }
+          );
+
+          testHls.on(
+            window.Hls.Events.ERROR,
+            (_, data) => {
+
+              if (
+                data?.fatal
+              ) {
+
+                fail(
+                  "لینک HLS قابل پخش نیست یا سرور آن دسترسی مرورگر را مسدود کرده است."
+                );
+              }
+            }
+          );
+
+          testHls.loadSource(
+            source.url
+          );
+
+          testHls.attachMedia(
+            testVideo
+          );
+
+          document.body.appendChild(
+            testVideo
+          );
+
+          setTimeout(
+            () => {
+
+              if (!done) {
+                fail(
+                  "HLS بعد از چند ثانیه آماده پخش نشد."
+                );
+              }
+
+            },
+            12000
+          );
+        }
+      );
+    }
+
+
+    /* =========================
+       SOURCE CONTROLS
+    ========================= */
+
+    function setSourceControlsDisabled(
+      disabled
+    ) {
+
+      confirmSource.disabled =
+        disabled;
+
+      cancelSource.disabled =
+        disabled;
+
+      uploadTab.disabled =
+        disabled;
+
+      urlTab.disabled =
+        disabled;
+
+      videoFile.disabled =
+        disabled;
+
+      videoUrl.disabled =
+        disabled;
+
+      if (disabled) {
+        confirmSource.textContent =
+          "در حال آماده‌سازی...";
+      } else {
+        confirmSource.textContent =
+          "انتخاب و پخش";
+      }
+    }
+
+
+    /* =========================
+       LOAD REAL SOURCE
     ========================= */
 
     function loadSource(
-      source
+      source,
+      showMessage
     ) {
 
       if (
         !source ||
         !source.url
       ) {
-
         return;
       }
 
-
       currentSource =
         source;
-
 
       emptyState.classList.add(
         "hidden"
       );
 
-
-      sourcePanel.classList.add(
+      guestWaiting.classList.add(
         "hidden"
       );
 
+      guestPlayButton.style.display =
+        "none";
 
-      hideUploadProgress();
+      guestNeedsPlayGesture =
+        false;
 
+      pendingRemotePlayback =
+        null;
 
-      if (hls) {
-
-        try {
-
-          hls.destroy();
-
-        } catch (_) {}
-
-        hls = null;
-      }
-
+      destroyHls();
 
       video.pause();
 
@@ -2051,27 +2403,22 @@
 
       video.load();
 
-
       const url =
-        String(
-          source.url
-        );
-
+        String(source.url);
 
       const mime =
         String(
           source.mime || ""
         ).toLowerCase();
 
+      const lowerUrl =
+        url.toLowerCase();
 
       const isHls =
-        url
-          .toLowerCase()
-          .includes(".m3u8") ||
+        lowerUrl.includes(".m3u8") ||
         mime.includes(
           "mpegurl"
         );
-
 
       if (
         isHls &&
@@ -2080,1344 +2427,227 @@
       ) {
 
         hls =
-          new window.Hls();
+          new window.Hls({
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 90
+          });
 
-        hls.loadSource(
-          url
+        hls.on(
+          window.Hls.Events.MANIFEST_PARSED,
+          () => {
+
+            video.playbackRate = 1;
+
+            if (
+              pendingRemotePlayback
+            ) {
+              waitForMediaThenApplyPlayback(
+                pendingRemotePlayback
+              );
+            }
+          }
         );
 
-        hls.attachMedia(
-          video
+        hls.on(
+          window.Hls.Events.ERROR,
+          (_, data) => {
+
+            console.error(
+              "HLS error:",
+              data
+            );
+
+            if (
+              data?.fatal
+            ) {
+
+              if (
+                data.type ===
+                window.Hls.ErrorTypes.NETWORK_ERROR
+              ) {
+
+                try {
+                  hls.startLoad();
+                } catch (_) {}
+
+              } else if (
+                data.type ===
+                window.Hls.ErrorTypes.MEDIA_ERROR
+              ) {
+
+                try {
+                  hls.recoverMediaError();
+                } catch (_) {}
+
+              } else {
+
+                showToast(
+                  "پخش HLS با خطا مواجه شد.",
+                  "error"
+                );
+              }
+            }
+          }
         );
+
+        hls.loadSource(url);
+
+        hls.attachMedia(video);
 
       } else {
 
-        video.src =
-          url;
-      }
+        video.src = url;
 
+        video.load();
+      }
 
       updateControls();
 
       updateReplaceButton();
+
+      if (
+        role === "guest"
+      ) {
+        showGuestWaitingForSource(
+          false
+        );
+      }
+
+      if (
+        showMessage &&
+        role === "host"
+      ) {
+        showToast(
+          "ویدئو آماده شد.",
+          "success"
+        );
+      }
     }
 
 
-    /* =========================
-       CLEAR VIDEO
-    ========================= */
-
-    function clearVideo() {
+    function destroyHls() {
 
       if (hls) {
 
         try {
-
           hls.destroy();
-
         } catch (_) {}
 
         hls = null;
       }
-
-
-      video.pause();
-
-      video.removeAttribute(
-        "src"
-      );
-
-      video.load();
-
-
-      currentSource =
-        null;
-
-
-      progress.value =
-        0;
-
-
-      currentTime.textContent =
-        "00:00";
-
-
-      duration.textContent =
-        "00:00";
-
-
-      updateEmptyState();
-
-      updateReplaceButton();
     }
 
 
     /* =========================
-       SEND PLAYBACK
+       GUEST WAITING
     ========================= */
 
-    function sendPlayback() {
+    function showWaiting() {
 
       if (
-        !socket ||
-        !currentSource ||
-        role !== "host" ||
-        applyingRemote
+        role === "guest"
       ) {
+
+        guestWaiting.classList.remove(
+          "hidden"
+        );
+
+        waitingTitle.textContent =
+          "منتظر ویدئو...";
+
+        waitingText.textContent =
+          "Host هنوز ویدئویی انتخاب نکرده است.";
+
+        guestPlayButton.style.display =
+          "none";
+      }
+
+      emptyState.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    function showGuestWaitingForSource(
+      hasSource
+    ) {
+
+      if (
+        role !== "guest"
+      ) {
+        return;
+      }
+
+      if (!hasSource) {
+
+        guestWaiting.classList.remove(
+          "hidden"
+        );
+
+        waitingTitle.textContent =
+          "منتظر ویدئو...";
+
+        waitingText.textContent =
+          "Host هنوز ویدئویی انتخاب نکرده است.";
+
+        guestPlayButton.style.display =
+          "none";
 
         return;
       }
 
+      /*
+       * منبع آمده است؛ دیگر پیام
+       * «منتظر ویدئو» نشان داده نمی‌شود.
+       */
 
-      socket.emit(
-        "playback",
-        {
-          playing:
-            !video.paused,
-
-          time:
-            Number(
-              video.currentTime ||
-              0
-            )
-        }
+      guestWaiting.classList.add(
+        "hidden"
       );
     }
 
 
     /* =========================
-       REMOTE PLAYBACK
-    ========================= */
-
-    function applyRemotePlayback(
-      playing,
-      time
-    ) {
-
-      if (
-        !currentSource
-      ) {
-
-        return;
-      }
-
-
-      applyingRemote =
-        true;
-
-
-      const target =
-        Number(time);
-
-
-      if (
-        Number.isFinite(
-          target
-        )
-      ) {
-
-        try {
-
-          if (
-            Math.abs(
-              video.currentTime -
-              target
-            ) > 0.7
-          ) {
-
-            video.currentTime =
-              target;
-          }
-
-        } catch (_) {}
-      }
-
-
-      if (playing) {
-
-        video
-          .play()
-          .catch(
-            () => {}
-          );
-
-      } else {
-
-        video.pause();
-      }
-
-
-      setTimeout(
-        () => {
-
-          applyingRemote =
-            false;
-
-        },
-        400
-      );
-    }
-
-
-    /* =========================
-       LOGIN
-    ========================= */
-
-    joinButton.addEventListener(
-      "click",
-      () => {
-
-        const name =
-          nameInput.value.trim();
-
-        const code =
-          roomInput.value
-            .trim()
-            .toUpperCase();
-
-
-        loginError.textContent =
-          "";
-
-
-        if (!socket) {
-
-          loginError.textContent =
-            "ارتباط با سرور برقرار نیست. صفحه را Refresh کن.";
-
-          return;
-        }
-
-
-        if (
-          !name ||
-          !code
-        ) {
-
-          loginError.textContent =
-            "نام و کد روم را وارد کن.";
-
-          return;
-        }
-
-
-        joinButton.disabled =
-          true;
-
-        joinButton.textContent =
-          "در حال ورود...";
-
-
-        socket.emit(
-          "join-room",
-          {
-            roomCode:
-              code,
-
-            name:
-              name
-          }
-        );
-
-      }
-    );
-
-
-    nameInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key ===
-          "Enter"
-        ) {
-
-          roomInput.focus();
-        }
-
-      }
-    );
-
-
-    roomInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key ===
-          "Enter"
-        ) {
-
-          joinButton.click();
-        }
-
-      }
-    );
-
-
-    /* =========================
-       SOCKET EVENTS
-    ========================= */
-
-    if (socket) {
-
-
-      /* JOIN */
-
-      socket.on(
-        "joined-room",
-        data => {
-
-          roomCode =
-            data.roomCode;
-
-          role =
-            data.role;
-
-          users =
-            data.users || [];
-
-          myName =
-            nameInput.value.trim();
-
-
-          roomInfo.textContent =
-            "روم: " +
-            roomCode;
-
-
-          roleBadge.textContent =
-            role === "host"
-              ? "میزبان"
-              : "مهمان";
-
-
-          showScreen(
-            room
-          );
-
-
-          updateUsers();
-
-
-          if (
-            data.source
-          ) {
-
-            loadSource(
-              data.source
-            );
-
-          } else {
-
-            updateEmptyState();
-          }
-
-
-          if (
-            data.playback &&
-            data.source
-          ) {
-
-            setTimeout(
-              () => {
-
-                applyRemotePlayback(
-                  !!data.playback.playing,
-                  Number(
-                    data.playback.time
-                  )
-                );
-
-              },
-              600
-            );
-          }
-
-
-          joinButton.disabled =
-            false;
-
-          joinButton.textContent =
-            "ورود به روم";
-        }
-      );
-
-
-      /* ROOM ERROR */
-
-      socket.on(
-        "room-error",
-        message => {
-
-          joinButton.disabled =
-            false;
-
-          joinButton.textContent =
-            "ورود به روم";
-
-
-          loginError.textContent =
-            message;
-        }
-      );
-
-
-      /* NEW VIDEO */
-
-      socket.on(
-        "media-source",
-        source => {
-
-          loadSource(
-            source
-          );
-        }
-      );
-
-
-      /* PLAYBACK */
-
-      socket.on(
-        "playback",
-        data => {
-
-          if (
-            role === "guest"
-          ) {
-
-            applyRemotePlayback(
-              !!data.playing,
-              Number(
-                data.time
-              )
-            );
-          }
-        }
-      );
-
-
-      /* USERS */
-
-      socket.on(
-        "room-users",
-        data => {
-
-          users =
-            data.users || [];
-
-          updateUsers();
-        }
-      );
-
-
-      /* HOST CHANGED */
-
-      socket.on(
-        "host-changed",
-        data => {
-
-          role =
-            data.hostId ===
-            socket.id
-              ? "host"
-              : "guest";
-
-
-          roleBadge.textContent =
-            role === "host"
-              ? "میزبان"
-              : "مهمان";
-
-
-          if (
-            role === "host"
-          ) {
-
-            if (
-              currentSource
-            ) {
-
-              replaceVideoButton.classList.remove(
-                "hidden"
-              );
-
-            } else {
-
-              updateEmptyState();
-            }
-
-          } else {
-
-            sourcePanel.classList.add(
-              "hidden"
-            );
-
-            replaceVideoButton.classList.add(
-              "hidden"
-            );
-          }
-
-
-          updateControls();
-        }
-      );
-
-
-      /* CHAT */
-
-      socket.on(
-        "chat",
-        message => {
-
-          const item =
-            document.createElement(
-              "div"
-            );
-
-
-          item.className =
-            "message";
-
-
-          if (
-            message.name ===
-            myName
-          ) {
-
-            item.classList.add(
-              "self"
-            );
-          }
-
-
-          const name =
-            document.createElement(
-              "div"
-            );
-
-
-          name.className =
-            "message-name";
-
-
-          name.textContent =
-            message.name;
-
-
-          const bubble =
-            document.createElement(
-              "div"
-            );
-
-
-          bubble.className =
-            "message-bubble";
-
-
-          bubble.textContent =
-            message.text;
-
-
-          item.appendChild(
-            name
-          );
-
-          item.appendChild(
-            bubble
-          );
-
-
-          messages.appendChild(
-            item
-          );
-
-
-          messages.scrollTop =
-            messages.scrollHeight;
-        }
-      );
-
-    }
-
-
-    /* =========================
-       USERS UI
-    ========================= */
-
-    function updateUsers() {
-
-      people.textContent =
-        users.length +
-        " نفر";
-
-
-      const me =
-        users.find(
-          user =>
-            user.id ===
-            socket?.id
-        );
-
-
-      if (me) {
-
-        role =
-          me.role;
-
-
-        roleBadge.textContent =
-          role === "host"
-            ? "میزبان"
-            : "مهمان";
-      }
-
-
-      updateControls();
-
-      updateReplaceButton();
-    }
-
-
-    /* =========================
-       SOURCE TABS
-    ========================= */
-
-    uploadTab.addEventListener(
-      "click",
-      () => {
-
-        sourceMode =
-          "upload";
-
-
-        uploadTab.classList.add(
-          "active"
-        );
-
-        urlTab.classList.remove(
-          "active"
-        );
-
-
-        uploadSource.classList.remove(
-          "hidden"
-        );
-
-        urlSource.classList.add(
-          "hidden"
-        );
-
-
-        sourceStatus.textContent =
-          "";
-
-        hideUploadProgress();
-      }
-    );
-
-
-    urlTab.addEventListener(
-      "click",
-      () => {
-
-        sourceMode =
-          "url";
-
-
-        urlTab.classList.add(
-          "active"
-        );
-
-        uploadTab.classList.remove(
-          "active"
-        );
-
-
-        uploadSource.classList.add(
-          "hidden"
-        );
-
-        urlSource.classList.remove(
-          "hidden"
-        );
-
-
-        sourceStatus.textContent =
-          "";
-
-        hideUploadProgress();
-      }
-    );
-
-
-    /* =========================
-       FILE SELECTED
-    ========================= */
-
-    fileInput.addEventListener(
-      "change",
-      () => {
-
-        if (
-          fileInput.files &&
-          fileInput.files[0]
-        ) {
-
-          sourceStatus.textContent =
-            fileInput.files[0].name;
-
-        } else {
-
-          sourceStatus.textContent =
-            "";
-        }
-
-      }
-    );
-
-
-    /* =========================
-       REAL FILE UPLOAD
-    ========================= */
-
-    function uploadVideo(
-      file
-    ) {
-
-      return new Promise(
-        (
-          resolve,
-          reject
-        ) => {
-
-
-          const xhr =
-            new XMLHttpRequest();
-
-
-          const formData =
-            new FormData();
-
-
-          formData.append(
-            "video",
-            file
-          );
-
-
-          xhr.open(
-            "POST",
-            "/api/upload"
-          );
-
-
-          xhr.upload.onprogress =
-            event => {
-
-              if (
-                !event.lengthComputable
-              ) {
-
-                return;
-              }
-
-
-              const percent =
-                (
-                  event.loaded /
-                  event.total
-                ) * 100;
-
-
-              setUploadProgress(
-                percent,
-                "در حال آپلود ویدئو..."
-              );
-            };
-
-
-          xhr.onload =
-            () => {
-
-              let result = {};
-
-
-              try {
-
-                result =
-                  JSON.parse(
-                    xhr.responseText
-                  );
-
-              } catch (_) {}
-
-
-              if (
-                xhr.status >= 200 &&
-                xhr.status < 300
-              ) {
-
-                setUploadProgress(
-                  100,
-                  "آپلود کامل شد؛ در حال آماده‌سازی..."
-                );
-
-
-                resolve(
-                  result
-                );
-
-              } else {
-
-                reject(
-                  new Error(
-                    result.error ||
-                    "آپلود ناموفق بود."
-                  )
-                );
-              }
-
-            };
-
-
-          xhr.onerror =
-            () => {
-
-              reject(
-                new Error(
-                  "ارتباط با سرور هنگام آپلود قطع شد."
-                )
-              );
-
-            };
-
-
-          xhr.onabort =
-            () => {
-
-              reject(
-                new Error(
-                  "آپلود لغو شد."
-                )
-              );
-
-            };
-
-
-          xhr.send(
-            formData
-          );
-
-        }
-      );
-    }
-
-
-    /* =========================
-       START / REPLACE VIDEO
-    ========================= */
-
-    sourceSubmit.addEventListener(
-      "click",
-      async () => {
-
-
-        if (
-          !socket ||
-          role !== "host"
-        ) {
-
-          return;
-        }
-
-
-        sourceSubmit.disabled =
-          true;
-
-
-        try {
-
-
-          /* =====================
-             FILE
-          ===================== */
-
-          if (
-            sourceMode ===
-            "upload"
-          ) {
-
-
-            const file =
-              fileInput.files[0];
-
-
-            if (!file) {
-
-              sourceStatus.textContent =
-                "اول یک فایل انتخاب کن.";
-
-              return;
-            }
-
-
-            setUploadProgress(
-              0,
-              "آماده‌سازی آپلود..."
-            );
-
-
-            const result =
-              await uploadVideo(
-                file
-              );
-
-
-            setUploadProgress(
-              100,
-              "آپلود کامل شد؛ در حال ارسال به روم..."
-            );
-
-
-            socket.emit(
-              "set-source",
-              {
-                type:
-                  "upload",
-
-                url:
-                  result.url,
-
-                name:
-                  result.name,
-
-                mime:
-                  result.mime
-              }
-            );
-
-
-            sourceStatus.textContent =
-              "ویدئو با موفقیت جایگزین شد.";
-
-
-            setTimeout(
-              () => {
-
-                hideUploadProgress();
-
-              },
-              1500
-            );
-
-
-          }
-
-
-          /* =====================
-             URL
-          ===================== */
-
-          else {
-
-
-            const url =
-              urlInput.value.trim();
-
-
-            if (!url) {
-
-              sourceStatus.textContent =
-                "لینک ویدئو را وارد کن.";
-
-              return;
-            }
-
-
-            if (
-              !/^https?:\/\//i.test(
-                url
-              )
-            ) {
-
-              sourceStatus.textContent =
-                "لینک باید با http یا https شروع شود.";
-
-              return;
-            }
-
-
-            setUploadProgress(
-              100,
-              "لینک دریافت شد؛ در حال آماده‌سازی..."
-            );
-
-
-            socket.emit(
-              "set-source",
-              {
-                type:
-                  "url",
-
-                url:
-                  url,
-
-                name:
-                  "ویدئوی آنلاین"
-              }
-            );
-
-
-            sourceStatus.textContent =
-              "لینک ارسال شد؛ در حال بارگذاری ویدئو...";
-
-
-            setTimeout(
-              () => {
-
-                hideUploadProgress();
-
-              },
-              2500
-            );
-
-          }
-
-
-        } catch (error) {
-
-
-          console.error(
-            error
-          );
-
-
-          sourceStatus.textContent =
-            error.message ||
-            "خطایی هنگام آماده‌سازی ویدئو رخ داد.";
-
-
-          uploadProgressText.textContent =
-            "خطا";
-
-
-          uploadProgressPercent.textContent =
-            "✕";
-
-
-        } finally {
-
-          sourceSubmit.disabled =
-            false;
-        }
-
-      }
-    );
-
-
-    /* =========================
-       REPLACE BUTTON
-    ========================= */
-
-    replaceVideoButton.addEventListener(
-      "click",
-      () => {
-
-
-        if (
-          role !== "host"
-        ) {
-
-          return;
-        }
-
-
-        sourcePanel.classList.remove(
-          "hidden"
-        );
-
-
-        sourcePanelTitle.textContent =
-          "تعویض ویدئو";
-
-
-        sourceStatus.textContent =
-          "ویدئوی جدید را انتخاب کن.";
-
-
-        hideUploadProgress();
-
-
-        fileInput.value =
-          "";
-
-        urlInput.value =
-          "";
-
-
-        sourceMode =
-          "upload";
-
-
-        uploadTab.classList.add(
-          "active"
-        );
-
-        urlTab.classList.remove(
-          "active"
-        );
-
-
-        uploadSource.classList.remove(
-          "hidden"
-        );
-
-        urlSource.classList.add(
-          "hidden"
-        );
-
-      }
-    );
-
-
-    /* =========================
-       PLAY
+       PLAYBACK
     ========================= */
 
     playButton.addEventListener(
       "click",
-      () => {
-
-
-        if (
-          role !== "host" ||
-          !currentSource
-        ) {
-
-          return;
-        }
-
-
-        if (
-          video.paused
-        ) {
-
-
-          video
-            .play()
-            .then(
-              () => {
-
-                sendPlayback();
-
-              }
-            )
-            .catch(
-              error => {
-
-                console.error(
-                  "Play error:",
-                  error
-                );
-
-              }
-            );
-
-
-        } else {
-
-
-          video.pause();
-
-          sendPlayback();
-
-        }
-
-      }
-    );
-
-
-    /* =========================
-       BACK 10
-    ========================= */
-
-    back10.addEventListener(
-      "click",
-      () => {
-
+      async () => {
 
         if (
           role !== "host" ||
           !currentSource
         ) {
-
           return;
         }
 
+        try {
 
-        video.currentTime =
-          Math.max(
-            0,
-            video.currentTime -
-            10
+          if (
+            video.paused
+          ) {
+
+            await video.play();
+
+          } else {
+
+            video.pause();
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Play error:",
+            error
           );
 
-
-        sendPlayback();
-
-      }
-    );
-
-
-    /* =========================
-       FORWARD 10
-    ========================= */
-
-    forward10.addEventListener(
-      "click",
-      () => {
-
-
-        if (
-          role !== "host" ||
-          !currentSource
-        ) {
-
-          return;
-        }
-
-
-        const max =
-          Number.isFinite(
-            video.duration
-          )
-            ? video.duration
-            : video.currentTime +
-              10;
-
-
-        video.currentTime =
-          Math.min(
-            max,
-            video.currentTime +
-            10
+          showToast(
+            "ویدئو هنوز آماده پخش نیست.",
+            "error"
           );
-
-
-        sendPlayback();
-
-      }
-    );
-
-
-    /* =========================
-       PROGRESS
-    ========================= */
-
-    progress.addEventListener(
-      "input",
-      () => {
-
-
-        if (
-          role !== "host" ||
-          !currentSource ||
-          !Number.isFinite(
-            video.duration
-          ) ||
-          video.duration <= 0
-        ) {
-
-          return;
         }
-
-
-        video.currentTime =
-          (
-            Number(
-              progress.value
-            ) / 100
-          ) *
-          video.duration;
-
-      }
-    );
-
-
-    progress.addEventListener(
-      "change",
-      () => {
-
-
-        if (
-          role === "host" &&
-          currentSource
-        ) {
-
-          sendPlayback();
-        }
-
-      }
-    );
-
-
-    /* =========================
-       VIDEO EVENTS
-    ========================= */
-
-    video.addEventListener(
-      "loadedmetadata",
-      () => {
-
-
-        if (
-          Number.isFinite(
-            video.duration
-          )
-        ) {
-
-          duration.textContent =
-            formatTime(
-              video.duration
-            );
-
-        }
-
-
-        updateControls();
-
-      }
-    );
-
-
-    video.addEventListener(
-      "timeupdate",
-      () => {
-
-
-        if (
-          Number.isFinite(
-            video.duration
-          ) &&
-          video.duration > 0
-        ) {
-
-          progress.value =
-            (
-              video.currentTime /
-              video.duration
-            ) *
-            100;
-
-        }
-
-
-        currentTime.textContent =
-          formatTime(
-            video.currentTime
-          );
-
       }
     );
 
@@ -3426,18 +2656,27 @@
       "play",
       () => {
 
-
         updateControls();
-
 
         if (
           role === "host" &&
-          !applyingRemote
+          !applyingRemote &&
+          currentSource &&
+          socket &&
+          connected
         ) {
 
-          sendPlayback();
+          socket.emit(
+            "playback",
+            {
+              playing: true,
+              time:
+                Number(
+                  video.currentTime
+                ) || 0
+            }
+          );
         }
-
       }
     );
 
@@ -3446,47 +2685,611 @@
       "pause",
       () => {
 
-
         updateControls();
-
 
         if (
           role === "host" &&
-          !applyingRemote
+          !applyingRemote &&
+          currentSource &&
+          socket &&
+          connected
         ) {
 
-          sendPlayback();
+          socket.emit(
+            "playback",
+            {
+              playing: false,
+              time:
+                Number(
+                  video.currentTime
+                ) || 0
+            }
+          );
         }
-
       }
     );
 
 
     video.addEventListener(
-      "error",
+      "loadedmetadata",
       () => {
 
-
-        console.error(
-          "Video error:",
-          video.error
-        );
-
+        updateControls();
 
         if (
-          currentSource
+          pendingRemotePlayback
         ) {
-
-          sourceStatus.textContent =
-            "این ویدئو قابل پخش نیست یا لینک مستقیم و معتبر نیست.";
-
-          sourcePanel.classList.remove(
-            "hidden"
+          waitForMediaThenApplyPlayback(
+            pendingRemotePlayback
           );
         }
-
       }
     );
+
+
+    video.addEventListener(
+      "canplay",
+      () => {
+
+        if (
+          pendingRemotePlayback
+        ) {
+          applyRemotePlayback(
+            pendingRemotePlayback
+          );
+        }
+      }
+    );
+
+
+    video.addEventListener(
+      "durationchange",
+      () => {
+        updateControls();
+      }
+    );
+
+
+    video.addEventListener(
+      "timeupdate",
+      () => {
+        updateControls();
+      }
+    );
+
+
+    video.addEventListener(
+      "ended",
+      () => {
+
+        updateControls();
+
+        if (
+          role === "host" &&
+          currentSource &&
+          socket &&
+          connected
+        ) {
+
+          socket.emit(
+            "playback",
+            {
+              playing: false,
+              time:
+                Number(
+                  video.duration
+                ) || 0
+            }
+          );
+        }
+      }
+    );
+
+
+    /* =========================
+       REMOTE PLAYBACK
+    ========================= */
+
+    function waitForMediaThenApplyPlayback(
+      state
+    ) {
+
+      if (
+        !state ||
+        !currentSource
+      ) {
+        return;
+      }
+
+      pendingRemotePlayback =
+        state;
+
+      if (
+        video.readyState >= 2
+      ) {
+
+        applyRemotePlayback(
+          state
+        );
+
+        return;
+      }
+
+      /*
+       * اگر هنوز media آماده نیست،
+       * رویداد canplay/loadedmetadata
+       * دوباره این تابع را اجرا می‌کند.
+       */
+    }
+
+
+    function applyRemotePlayback(
+      state
+    ) {
+
+      if (
+        role !== "guest" ||
+        !currentSource ||
+        !state
+      ) {
+        return;
+      }
+
+      const target =
+        Number(state.time);
+
+      applyingRemote = true;
+
+      if (
+        Number.isFinite(target)
+      ) {
+
+        if (
+          Number.isFinite(
+            video.duration
+          ) &&
+          video.duration > 0
+        ) {
+
+          try {
+
+            video.currentTime =
+              Math.min(
+                Math.max(
+                  0,
+                  target
+                ),
+                video.duration
+              );
+
+          } catch (_) {}
+
+        }
+      }
+
+      if (
+        state.playing
+      ) {
+
+        video.play()
+          .then(() => {
+
+            applyingRemote = false;
+
+            pendingRemotePlayback =
+              null;
+
+            guestNeedsPlayGesture =
+              false;
+
+            guestWaiting.classList.add(
+              "hidden"
+            );
+
+          })
+          .catch(error => {
+
+            console.log(
+              "Guest autoplay blocked:",
+              error
+            );
+
+            /*
+             * مرورگر ممکن است اجازه autoplay
+             * ندهد. در این حالت یک دکمه واقعی
+             * برای user gesture نشان می‌دهیم.
+             */
+
+            applyingRemote = false;
+
+            guestNeedsPlayGesture =
+              true;
+
+            guestWaiting.classList.remove(
+              "hidden"
+            );
+
+            waitingTitle.textContent =
+              "ویدئو آماده است";
+
+            waitingText.textContent =
+              "برای شروع پخش همگام، یک بار روی دکمه زیر بزن.";
+
+            guestPlayButton.style.display =
+              "inline-block";
+          });
+
+      } else {
+
+        video.pause();
+
+        applyingRemote = false;
+
+        pendingRemotePlayback =
+          null;
+
+        guestWaiting.classList.add(
+          "hidden"
+        );
+      }
+    }
+
+
+    /* =========================
+       GUEST MANUAL PLAY
+    ========================= */
+
+    guestPlayButton.addEventListener(
+      "click",
+      async () => {
+
+        if (
+          role !== "guest" ||
+          !currentSource
+        ) {
+          return;
+        }
+
+        try {
+
+          if (
+            pendingRemotePlayback
+          ) {
+
+            const state =
+              pendingRemotePlayback;
+
+            const target =
+              Number(state.time);
+
+            if (
+              Number.isFinite(target) &&
+              Number.isFinite(video.duration) &&
+              video.duration > 0
+            ) {
+
+              video.currentTime =
+                Math.min(
+                  Math.max(
+                    0,
+                    target
+                  ),
+                  video.duration
+                );
+            }
+
+            await video.play();
+
+            guestNeedsPlayGesture =
+              false;
+
+            pendingRemotePlayback =
+              null;
+
+            guestWaiting.classList.add(
+              "hidden"
+            );
+
+          } else {
+
+            await video.play();
+
+            guestWaiting.classList.add(
+              "hidden"
+            );
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Guest play error:",
+            error
+          );
+
+          showToast(
+            "پخش ویدئو هنوز ممکن نیست.",
+            "error"
+          );
+        }
+      }
+    );
+
+
+    /* =========================
+       SEEK
+    ========================= */
+
+    timeline.addEventListener(
+      "input",
+      () => {
+
+        if (
+          !Number.isFinite(
+            video.duration
+          ) ||
+          video.duration <= 0
+        ) {
+          return;
+        }
+
+        const value =
+          Number(timeline.value);
+
+        const time =
+          video.duration *
+          (value / 100);
+
+        timeText.textContent =
+          formatTime(time) +
+          " / " +
+          formatTime(video.duration);
+      }
+    );
+
+
+    timeline.addEventListener(
+      "change",
+      () => {
+
+        if (
+          role !== "host" ||
+          !currentSource
+        ) {
+          return;
+        }
+
+        if (
+          !Number.isFinite(
+            video.duration
+          ) ||
+          video.duration <= 0
+        ) {
+          return;
+        }
+
+        const value =
+          Number(timeline.value);
+
+        const time =
+          video.duration *
+          (value / 100);
+
+        video.currentTime =
+          time;
+
+        if (
+          socket &&
+          connected
+        ) {
+
+          socket.emit(
+            "playback",
+            {
+              playing:
+                !video.paused,
+              time
+            }
+          );
+        }
+      }
+    );
+
+
+    backButton.addEventListener(
+      "click",
+      () => {
+
+        if (
+          !currentSource
+        ) {
+          return;
+        }
+
+        const newTime =
+          Math.max(
+            0,
+            video.currentTime - 10
+          );
+
+        if (
+          role === "host"
+        ) {
+
+          video.currentTime =
+            newTime;
+
+          sendPlayback();
+
+        } else {
+
+          try {
+            video.currentTime =
+              newTime;
+          } catch (_) {}
+        }
+      }
+    );
+
+
+    forwardButton.addEventListener(
+      "click",
+      () => {
+
+        if (
+          !currentSource
+        ) {
+          return;
+        }
+
+        const duration =
+          Number(video.duration);
+
+        const newTime =
+          Number.isFinite(duration) &&
+          duration > 0
+            ? Math.min(
+                duration,
+                video.currentTime + 10
+              )
+            : video.currentTime + 10;
+
+        if (
+          role === "host"
+        ) {
+
+          video.currentTime =
+            newTime;
+
+          sendPlayback();
+
+        } else {
+
+          try {
+            video.currentTime =
+              newTime;
+          } catch (_) {}
+        }
+      }
+    );
+
+
+    function sendPlayback() {
+
+      if (
+        role !== "host" ||
+        !currentSource ||
+        !socket ||
+        !connected
+      ) {
+        return;
+      }
+
+      socket.emit(
+        "playback",
+        {
+          playing:
+            !video.paused,
+          time:
+            Number(
+              video.currentTime
+            ) || 0
+        }
+      );
+    }
+
+
+    /* =========================
+       CONTROLS UI
+    ========================= */
+
+    function updateControls() {
+
+      const duration =
+        Number(video.duration);
+
+      const current =
+        Number(video.currentTime);
+
+      if (
+        Number.isFinite(duration) &&
+        duration > 0
+      ) {
+
+        const percent =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              (current / duration) * 100
+            )
+          );
+
+        timeline.value =
+          percent;
+
+        timeText.textContent =
+          formatTime(current) +
+          " / " +
+          formatTime(duration);
+
+      } else {
+
+        timeline.value = 0;
+
+        timeText.textContent =
+          formatTime(current || 0) +
+          " / 00:00";
+      }
+
+      playButton.textContent =
+        video.paused
+          ? "▶"
+          : "Ⅱ";
+    }
+
+
+    function formatTime(seconds) {
+
+      if (
+        !Number.isFinite(seconds) ||
+        seconds < 0
+      ) {
+        return "00:00";
+      }
+
+      seconds =
+        Math.floor(seconds);
+
+      const hours =
+        Math.floor(
+          seconds / 3600
+        );
+
+      const minutes =
+        Math.floor(
+          (seconds % 3600) / 60
+        );
+
+      const secs =
+        seconds % 60;
+
+      if (hours > 0) {
+
+        return (
+          String(hours).padStart(2, "0") +
+          ":" +
+          String(minutes).padStart(2, "0") +
+          ":" +
+          String(secs).padStart(2, "0")
+        );
+      }
+
+      return (
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(secs).padStart(2, "0")
+      );
+    }
 
 
     /* =========================
@@ -3497,9 +3300,7 @@
       "click",
       async () => {
 
-
         try {
-
 
           if (
             document.fullscreenElement
@@ -3509,20 +3310,31 @@
 
           } else {
 
-            await videoStage.requestFullscreen();
+            const target =
+              document.querySelector(
+                ".video-container"
+              );
 
+            if (
+              target?.requestFullscreen
+            ) {
+
+              await target.requestFullscreen();
+
+            } else if (
+              video.webkitEnterFullscreen
+            ) {
+
+              video.webkitEnterFullscreen();
+            }
           }
 
-
         } catch (error) {
-
           console.error(
             "Fullscreen error:",
             error
           );
-
         }
-
       }
     );
 
@@ -3531,41 +3343,247 @@
        CHAT
     ========================= */
 
-    chatForm.addEventListener(
-      "submit",
+    chatSend.addEventListener(
+      "click",
+      sendChat
+    );
+
+
+    chatInput.addEventListener(
+      "keydown",
       event => {
 
+        if (
+          event.key === "Enter"
+        ) {
 
-        event.preventDefault();
+          event.preventDefault();
 
-
-        if (!socket) {
-
-          return;
+          sendChat();
         }
-
-
-        const text =
-          chatInput.value.trim();
-
-
-        if (!text) {
-
-          return;
-        }
-
-
-        socket.emit(
-          "chat",
-          text
-        );
-
-
-        chatInput.value =
-          "";
-
       }
     );
+
+
+    function sendChat() {
+
+      if (
+        !socket ||
+        !connected
+      ) {
+        return;
+      }
+
+      const text =
+        String(
+          chatInput.value || ""
+        ).trim();
+
+      if (!text) {
+        return;
+      }
+
+      socket.emit(
+        "chat",
+        text
+      );
+
+      chatInput.value = "";
+
+      chatInput.focus();
+    }
+
+
+    function addMessage(message) {
+
+      if (
+        !message
+      ) {
+        return;
+      }
+
+      const wrapper =
+        document.createElement(
+          "div"
+        );
+
+      const isMe =
+        message.name === myName;
+
+      wrapper.className =
+        "message" +
+        (isMe ? " me" : "");
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className =
+        "message-name";
+
+      name.textContent =
+        isMe
+          ? "شما"
+          : String(
+              message.name || "کاربر"
+            );
+
+      const bubble =
+        document.createElement(
+          "div"
+        );
+
+      bubble.className =
+        "message-bubble";
+
+      bubble.textContent =
+        String(
+          message.text || ""
+        );
+
+      wrapper.appendChild(
+        name
+      );
+
+      wrapper.appendChild(
+        bubble
+      );
+
+      messages.appendChild(
+        wrapper
+      );
+
+      messages.scrollTop =
+        messages.scrollHeight;
+    }
+
+
+    /* =========================
+       VIDEO ERRORS
+    ========================= */
+
+    video.addEventListener(
+      "error",
+      () => {
+
+        if (
+          !currentSource
+        ) {
+          return;
+        }
+
+        console.error(
+          "Video element error:",
+          video.error
+        );
+
+        /*
+         * فقط اگر واقعاً در حال پخش
+         * منبع هستیم پیام بده.
+         */
+
+        const error =
+          video.error;
+
+        if (
+          error?.code === 4
+        ) {
+
+          showToast(
+            "این ویدئو توسط مرورگر قابل پخش نیست. MP4 با H.264/AAC را امتحان کن.",
+            "error"
+          );
+
+        } else if (
+          error
+        ) {
+
+          showToast(
+            "در بارگذاری ویدئو خطایی رخ داد.",
+            "error"
+          );
+        }
+      }
+    );
+
+
+    /* =========================
+       KEYBOARD
+    ========================= */
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.target === chatInput ||
+          event.target === nameInput ||
+          event.target === roomInput ||
+          event.target === videoUrl
+        ) {
+          return;
+        }
+
+        if (
+          event.code === "Space" &&
+          currentSource
+        ) {
+
+          event.preventDefault();
+
+          if (
+            role === "host"
+          ) {
+            playButton.click();
+          }
+        }
+      }
+    );
+
+
+    /* =========================
+       HELPERS
+    ========================= */
+
+    function getVideoErrorMessage(
+      error
+    ) {
+
+      const text =
+        String(
+          error?.message || ""
+        );
+
+      if (
+        text.includes(
+          "کدک"
+        )
+      ) {
+        return text;
+      }
+
+      if (
+        text.includes(
+          "HLS"
+        )
+      ) {
+        return text;
+      }
+
+      if (
+        text.includes(
+          "سرور"
+        )
+      ) {
+        return text;
+      }
+
+      return (
+        text ||
+        "ویدئو قابل پخش نیست."
+      );
+    }
 
 
     /* =========================
@@ -3573,8 +3591,6 @@
     ========================= */
 
     updateControls();
-
-    updateReplaceButton();
 
   </script>
 
