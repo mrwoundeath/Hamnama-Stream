@@ -710,12 +710,11 @@ button{
 
       <div id="videoControls">
 
-        <button
-          id="playBtn"
-          class="control-btn"
-        >
-          ▶
-        </button>
+        <button id="backBtn" class="control-btn" type="button" title="۱۰ ثانیه عقب">↶10</button>
+
+        <button id="playBtn" class="control-btn" type="button">▶</button>
+
+        <button id="forwardBtn" class="control-btn" type="button" title="۱۰ ثانیه جلو">10↷</button>
 
         <input
           id="progress"
@@ -729,6 +728,10 @@ button{
         <div id="timeLabel">
           00:00 / 00:00
         </div>
+
+        <button id="muteBtn" class="control-btn" type="button" title="بی‌صدا">🔊</button>
+
+        <input id="volumeSlider" class="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="صدا">
 
       </div>
 
@@ -1007,8 +1010,23 @@ const playOverlay =
 const manualPlayBtn =
   document.getElementById("manualPlayBtn");
 
+const videoControls =
+  document.getElementById("videoControls");
+
+const backBtn =
+  document.getElementById("backBtn");
+
 const playBtn =
   document.getElementById("playBtn");
+
+const forwardBtn =
+  document.getElementById("forwardBtn");
+
+const muteBtn =
+  document.getElementById("muteBtn");
+
+const volumeSlider =
+  document.getElementById("volumeSlider");
 
 const progress =
   document.getElementById("progress");
@@ -1356,6 +1374,7 @@ function updateRoleUI(){
     sourceBtn.classList.remove(
       "hidden"
     );
+    updateVideoControlsRole();
 
   }else{
 
@@ -1369,6 +1388,7 @@ function updateRoleUI(){
     sourceBtn.classList.add(
       "hidden"
     );
+    updateVideoControlsRole();
   }
 }
 
@@ -1853,6 +1873,49 @@ function loadSource(source){
 
 
 /* =========================================================
+   PLAYBACK CONTROLS
+========================================================= */
+
+function updateVideoControlsRole(){
+  if(myRole === "host") videoControls.classList.remove("guest");
+  else videoControls.classList.add("guest");
+}
+
+function seekVideoBy(seconds){
+  if(myRole !== "host") return;
+  if(!Number.isFinite(video.duration)) return;
+  const next=Math.max(0,Math.min(video.duration,video.currentTime + seconds));
+  video.currentTime=next;
+  sendPlayback(!video.paused);
+  updateTimeUI();
+}
+
+function updateMuteUI(){
+  const muted=video.muted || video.volume===0;
+  muteBtn.textContent=muted ? "🔇" : "🔊";
+  muteBtn.title=muted ? "فعال کردن صدا" : "بی‌صدا";
+  volumeSlider.value=video.muted ? 0 : video.volume;
+}
+
+backBtn.addEventListener("click",()=>seekVideoBy(-10));
+forwardBtn.addEventListener("click",()=>seekVideoBy(10));
+
+muteBtn.addEventListener("click",()=>{
+  video.muted=!video.muted;
+  if(!video.muted && video.volume===0) video.volume=1;
+  updateMuteUI();
+});
+
+volumeSlider.addEventListener("input",()=>{
+  const v=Math.max(0,Math.min(1,Number(volumeSlider.value)));
+  video.volume=v;
+  video.muted=v===0;
+  updateMuteUI();
+});
+
+video.addEventListener("volumechange",updateMuteUI);
+
+/* =========================================================
    PLAYBACK
 ========================================================= */
 
@@ -1961,35 +2024,15 @@ function sendPlayback(playing){
 }
 
 
-progress.addEventListener(
-  "input",
-  () => {
+progress.addEventListener("input",()=>{
+  if(myRole !== "host" || !video.duration) return;
+  video.currentTime=Number(progress.value)/100*video.duration;
+  updateTimeUI();
+});
 
-    if(!video.duration){
-      return;
-    }
-
-    video.currentTime =
-      Number(progress.value) /
-      100 *
-      video.duration;
-
-    updateTimeUI();
-  }
-);
-
-
-progress.addEventListener(
-  "change",
-  () => {
-
-    if(myRole === "host"){
-      sendPlayback(
-        !video.paused
-      );
-    }
-  }
-);
+progress.addEventListener("change",()=>{
+  if(myRole === "host") sendPlayback(!video.paused);
+});
 
 
 function applyPlayback(state){
@@ -2330,7 +2373,10 @@ async function enableMicrophone(){
           audio:{
             echoCancellation:true,
             noiseSuppression:true,
-            autoGainControl:true
+            autoGainControl:true,
+            channelCount:1,
+            sampleRate:48000,
+            sampleSize:16
           },
           video:false
         }
@@ -2495,7 +2541,7 @@ function updateMicrophoneUI(){
 
 
 /* =========================================================
-   WEBRTC VOICE CHAT — LONG-RUN / SELF-HEALING FULL DUPLEX
+   WEBRTC VOICE CHAT — STABLE / AUTO RECOVERY
 ========================================================= */
 
 const VOICE_ICE_SERVERS = [
@@ -2505,8 +2551,11 @@ const VOICE_ICE_SERVERS = [
 
 const pendingVoiceIce = new Map();
 const voiceOfferTimers = new Map();
-const voiceHealthTimers = new Map();
-const voiceReconnectTimers = new Map();
+const voiceRecoveryTimers = new Map();
+
+function voiceShouldInitiate(remoteId){
+  return String(socket.id || "") < String(remoteId || "");
+}
 
 function queueVoiceIce(remoteId, candidate){
   if(!pendingVoiceIce.has(remoteId)) pendingVoiceIce.set(remoteId, []);
@@ -2519,102 +2568,95 @@ async function flushVoiceIce(peer){
   pendingVoiceIce.delete(peer.remoteId);
   for(const candidate of list){
     try{ await peer.pc.addIceCandidate(candidate); }
-    catch(e){ console.warn("Voice queued ICE error", e); }
+    catch(e){ console.warn("Voice ICE queue error", e); }
   }
 }
 
-function voiceShouldInitiate(remoteId){
-  return String(socket.id || "") < String(remoteId || "");
-}
-
 function configureVoiceSender(peer){
-  const sender = peer?.audioTransceiver?.sender;
+  const sender=peer?.audioTransceiver?.sender;
   if(!sender) return;
   try{
-    const p = sender.getParameters();
-    if(!p.encodings || !p.encodings.length) p.encodings = [{}];
-    p.encodings[0].maxBitrate = 96000;
-    p.encodings[0].networkPriority = "high";
-    if("priority" in p.encodings[0]) p.encodings[0].priority = "high";
+    const p=sender.getParameters();
+    if(!p.encodings || !p.encodings.length) p.encodings=[{}];
+    p.encodings[0].maxBitrate=96000;
+    if("networkPriority" in p.encodings[0]) p.encodings[0].networkPriority="high";
+    if("priority" in p.encodings[0]) p.encodings[0].priority="high";
     sender.setParameters(p).catch(()=>{});
   }catch{}
 }
 
-function clearVoiceTimers(remoteId){
-  const a = voiceOfferTimers.get(remoteId); if(a) clearTimeout(a);
-  const b = voiceReconnectTimers.get(remoteId); if(b) clearTimeout(b);
-  const c = voiceHealthTimers.get(remoteId); if(c) clearInterval(c);
-  voiceOfferTimers.delete(remoteId);
-  voiceReconnectTimers.delete(remoteId);
-  voiceHealthTimers.delete(remoteId);
+function clearVoiceRecovery(remoteId){
+  const t=voiceRecoveryTimers.get(remoteId);
+  if(t) clearTimeout(t);
+  voiceRecoveryTimers.delete(remoteId);
 }
 
 function createPeer(remoteId){
-  if(!remoteId || remoteId === socket.id) return null;
+  if(!remoteId || remoteId===socket.id) return null;
   if(peers.has(remoteId)) return peers.get(remoteId);
 
-  const peer = {
+  const peer={
     remoteId,
-    pc: null,
-    makingOffer: false,
-    polite: !voiceShouldInitiate(remoteId),
-    ignoreOffer: false,
-    closed: false,
-    audioTransceiver: null,
-    remoteStream: null,
-    lastBytesSent: 0,
-    lastBytesReceived: 0,
-    lastHealthAt: Date.now(),
-    disconnectedSince: 0,
-    restarting: false
+    pc:null,
+    audioTransceiver:null,
+    remoteStream:null,
+    makingOffer:false,
+    polite:!voiceShouldInitiate(remoteId),
+    ignoreOffer:false,
+    closed:false,
+    recoveryScheduled:false
   };
 
-  const pc = new RTCPeerConnection({
-    iceServers: VOICE_ICE_SERVERS,
-    iceTransportPolicy: "all",
-    bundlePolicy: "max-bundle",
-    rtcpMuxPolicy: "require"
+  const pc=new RTCPeerConnection({
+    iceServers:VOICE_ICE_SERVERS,
+    iceTransportPolicy:"all",
+    bundlePolicy:"max-bundle",
+    rtcpMuxPolicy:"require"
   });
-  peer.pc = pc;
-  peers.set(remoteId, peer);
+  peer.pc=pc;
+  peers.set(remoteId,peer);
 
-  const transceiver = pc.addTransceiver("audio", { direction:"sendrecv" });
-  peer.audioTransceiver = transceiver;
+  const transceiver=pc.addTransceiver("audio",{direction:"sendrecv"});
+  peer.audioTransceiver=transceiver;
 
   try{
-    const caps = RTCRtpSender.getCapabilities?.("audio");
+    const caps=RTCRtpSender.getCapabilities?.("audio");
     if(caps?.codecs?.length && transceiver.setCodecPreferences){
-      const opus = caps.codecs.filter(c => String(c.mimeType).toLowerCase()==="audio/opus");
-      const rest = caps.codecs.filter(c => String(c.mimeType).toLowerCase()!=="audio/opus");
-      if(opus.length) transceiver.setCodecPreferences([...opus, ...rest]);
+      const opus=caps.codecs.filter(c=>String(c.mimeType).toLowerCase()==="audio/opus");
+      const rest=caps.codecs.filter(c=>String(c.mimeType).toLowerCase()!=="audio/opus");
+      if(opus.length) transceiver.setCodecPreferences([...opus,...rest]);
     }
   }catch(e){ console.warn("Voice codec preference unavailable",e); }
 
+  if(microphoneEnabled && localMicrophoneStream){
+    const track=localMicrophoneStream.getAudioTracks()[0];
+    if(track){
+      track.contentHint="speech";
+      transceiver.sender.replaceTrack(track).catch(()=>{});
+    }
+  }
   configureVoiceSender(peer);
 
-  if(microphoneEnabled && localMicrophoneStream){
-    const track = localMicrophoneStream.getAudioTracks()[0];
-    if(track){ track.contentHint="speech"; transceiver.sender.replaceTrack(track).catch(()=>{}); }
-  }
-
-  pc.onicecandidate = e => {
+  pc.onicecandidate=e=>{
     if(e.candidate && socket.connected){
-      socket.emit("voice-ice", {target:remoteId, candidate:e.candidate});
+      socket.emit("voice-ice",{target:remoteId,candidate:e.candidate});
     }
   };
 
-  pc.ontrack = e => {
-    if(e.track?.kind !== "audio") return;
-    let audio = remoteAudios.get(remoteId);
+  pc.ontrack=e=>{
+    if(e.track?.kind!=="audio") return;
+    let audio=remoteAudios.get(remoteId);
     if(!audio){
       audio=document.createElement("audio");
-      audio.autoplay=true; audio.playsInline=true;
+      audio.autoplay=true;
+      audio.playsInline=true;
       audio.setAttribute("playsinline","");
       audio.className="remote-audio";
       audio.style.display="none";
       document.body.appendChild(audio);
       remoteAudios.set(remoteId,audio);
     }
+
     if(e.streams?.[0]){
       peer.remoteStream=e.streams[0];
       audio.srcObject=e.streams[0];
@@ -2623,64 +2665,53 @@ function createPeer(remoteId){
       if(!peer.remoteStream.getTracks().includes(e.track)) peer.remoteStream.addTrack(e.track);
       audio.srcObject=peer.remoteStream;
     }
+
     audio.muted=!speakerEnabled;
     audio.volume=speakerEnabled?1:0;
-    const play=()=>{
-      if(!speakerEnabled || !audio.srcObject) return;
-      audio.muted=false; audio.volume=1;
-      audio.play().catch(()=>{});
-    };
-    e.track.onunmute=play;
-    e.track.onended=()=>{};
-    play();
+    if(speakerEnabled) audio.play().catch(()=>{});
   };
 
-  pc.onconnectionstatechange = () => {
-    const state=pc.connectionState;
-    console.log("Voice connection",remoteId,state);
-    if(state==="connected"){
-      peer.disconnectedSince=0;
-      peer.restarting=false;
+  pc.onconnectionstatechange=()=>{
+    const st=pc.connectionState;
+    console.log("Voice connection",remoteId,st);
+    if(st==="connected"){
+      peer.recoveryScheduled=false;
+      clearVoiceRecovery(remoteId);
       configureVoiceSender(peer);
-    }else if(state==="disconnected"){
-      if(!peer.disconnectedSince) peer.disconnectedSince=Date.now();
-      scheduleVoiceRecovery(peer,6000);
-    }else if(state==="failed"){
-      scheduleVoiceRecovery(peer,500);
-    }else if(state==="closed"){
+    }else if(st==="failed" || st==="disconnected"){
+      scheduleVoiceRecovery(peer,st==="failed"?1000:5000);
+    }else if(st==="closed"){
       removePeer(remoteId);
     }
   };
 
-  pc.oniceconnectionstatechange = () => {
+  pc.oniceconnectionstatechange=()=>{
     const st=pc.iceConnectionState;
+    console.log("Voice ICE",remoteId,st);
     if(st==="connected" || st==="completed"){
-      peer.disconnectedSince=0;
-      peer.restarting=false;
-    }else if(st==="disconnected"){
-      if(!peer.disconnectedSince) peer.disconnectedSince=Date.now();
-      scheduleVoiceRecovery(peer,7000);
+      peer.recoveryScheduled=false;
+      clearVoiceRecovery(remoteId);
     }else if(st==="failed"){
-      scheduleVoiceRecovery(peer,500);
+      scheduleVoiceRecovery(peer,1000);
+    }else if(st==="disconnected"){
+      scheduleVoiceRecovery(peer,5000);
     }
   };
 
-  pc.onnegotiationneeded = () => {
-    if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,100);
+  pc.onnegotiationneeded=()=>{
+    if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,150);
   };
 
-  startVoiceHealthMonitor(peer);
-
-  if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,150);
+  if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,250);
   return peer;
 }
 
-function scheduleVoiceOffer(peer,delay=100){
+function scheduleVoiceOffer(peer,delay=150){
   if(!peer || peer.closed || !voiceShouldInitiate(peer.remoteId)) return;
   if(voiceOfferTimers.has(peer.remoteId)) return;
   const timer=setTimeout(()=>{
     voiceOfferTimers.delete(peer.remoteId);
-    negotiateVoicePeer(peer);
+    negotiateVoicePeer(peer,false);
   },delay);
   voiceOfferTimers.set(peer.remoteId,timer);
 }
@@ -2688,123 +2719,71 @@ function scheduleVoiceOffer(peer,delay=100){
 async function negotiateVoicePeer(peer,iceRestart=false){
   if(!peer || peer.closed || !peer.pc || !voiceShouldInitiate(peer.remoteId)) return;
   const pc=peer.pc;
-  if(peer.makingOffer) return;
-  if(pc.signalingState!=="stable") return;
+  if(peer.makingOffer || pc.signalingState!=="stable") return;
   try{
     peer.makingOffer=true;
     const offer=await pc.createOffer(iceRestart?{iceRestart:true}:{});
     await pc.setLocalDescription(offer);
-    if(socket.connected) socket.emit("voice-offer",{target:peer.remoteId,offer:pc.localDescription});
-  }catch(e){ console.warn("Voice negotiation error",e); }
+    if(socket.connected){
+      socket.emit("voice-offer",{target:peer.remoteId,offer:pc.localDescription});
+    }
+  }catch(e){ console.warn("Voice offer error",e); }
   finally{ peer.makingOffer=false; }
 }
 
-function scheduleVoiceRecovery(peer,delay=1000){
-  if(!peer || peer.closed) return;
-  if(voiceReconnectTimers.has(peer.remoteId)) return;
+function scheduleVoiceRecovery(peer,delay){
+  if(!peer || peer.closed || peer.recoveryScheduled) return;
+  peer.recoveryScheduled=true;
   const timer=setTimeout(()=>{
-    voiceReconnectTimers.delete(peer.remoteId);
+    voiceRecoveryTimers.delete(peer.remoteId);
+    peer.recoveryScheduled=false;
     recoverVoicePeer(peer);
   },delay);
-  voiceReconnectTimers.set(peer.remoteId,timer);
+  voiceRecoveryTimers.set(peer.remoteId,timer);
 }
 
-async function recoverVoicePeer(peer){
+function recoverVoicePeer(peer){
   if(!peer || peer.closed) return;
   const pc=peer.pc;
   if(pc.connectionState==="connected" && (pc.iceConnectionState==="connected" || pc.iceConnectionState==="completed")) return;
 
-  if(voiceShouldInitiate(peer.remoteId)){
-    try{
-      peer.restarting=true;
-      if(pc.signalingState==="stable"){
-        await negotiateVoicePeer(peer,true);
-      }else if(pc.signalingState!=="closed"){
-        try{ await pc.setLocalDescription({type:"rollback"}); }catch{}
-        if(pc.signalingState==="stable") await negotiateVoicePeer(peer,true);
-      }
-      setTimeout(()=>{
-        if(!peer.closed && pc.connectionState!=="connected" && pc.iceConnectionState!=="completed"){
-          recreateVoicePeer(peer.remoteId);
-        }
-      },9000);
-    }catch(e){
-      console.warn("Voice ICE recovery error",e);
-      recreateVoicePeer(peer.remoteId);
-    }
-  }
-}
+  console.log("Recovering voice connection",peer.remoteId);
 
-function recreateVoicePeer(remoteId){
-  const old=peers.get(remoteId);
-  if(old){ removePeer(remoteId); }
-  const p=createPeer(remoteId);
-  if(p && voiceShouldInitiate(remoteId)) scheduleVoiceOffer(p,200);
-}
-
-function startVoiceHealthMonitor(peer){
+  // A clean PeerConnection is more reliable on mobile browsers than
+  // repeatedly forcing rollback/ICE-restart after a stale connection.
   const id=peer.remoteId;
-  const timer=setInterval(async()=>{
-    if(peer.closed || !peer.pc){ clearVoiceTimers(id); return; }
-    const pc=peer.pc;
-    if(pc.connectionState==="closed") return;
-    if(pc.connectionState==="disconnected" || pc.iceConnectionState==="disconnected" || pc.iceConnectionState==="failed"){
-      scheduleVoiceRecovery(peer,500);
-      return;
-    }
-    if(pc.connectionState!=="connected") return;
-    try{
-      const stats=await pc.getStats();
-      let sent=0,received=0;
-      stats.forEach(r=>{
-        if(r.type==="outbound-rtp" && r.kind==="audio") sent+=Number(r.bytesSent||0);
-        if(r.type==="inbound-rtp" && r.kind==="audio") received+=Number(r.bytesReceived||0);
-      });
-      const now=Date.now();
-      const elapsed=now-peer.lastHealthAt;
-      const sendStalled=peer.lastBytesSent>0 && sent===peer.lastBytesSent && microphoneEnabled;
-      const recvStalled=peer.lastBytesReceived>0 && received===peer.lastBytesReceived;
-      peer.lastBytesSent=sent;
-      peer.lastBytesReceived=received;
-      peer.lastHealthAt=now;
-      if(elapsed>10000 && (sendStalled || recvStalled)) scheduleVoiceRecovery(peer,500);
-    }catch{}
-  },10000);
-  voiceHealthTimers.set(id,timer);
-}
-
-async function setLocalAudioTrack(peer,track){
-  if(!peer?.pc || peer.closed) return;
-  const transceiver=peer.audioTransceiver || peer.pc.getTransceivers().find(t=>t.sender?.track?.kind==="audio" || t.receiver?.track?.kind==="audio") || peer.pc.addTransceiver("audio",{direction:"sendrecv"});
-  peer.audioTransceiver=transceiver;
-  transceiver.direction="sendrecv";
-  if(track) track.contentHint="speech";
-  await transceiver.sender.replaceTrack(track||null);
-  configureVoiceSender(peer);
+  removePeer(id);
+  const fresh=createPeer(id);
+  if(fresh && voiceShouldInitiate(id)) scheduleVoiceOffer(fresh,300);
 }
 
 socket.on("voice-offer",async data=>{
   if(!data?.from || !data?.offer) return;
-  const peer=createPeer(data.from); if(!peer) return;
+  const peer=createPeer(data.from);
+  if(!peer) return;
   const pc=peer.pc;
-  const collision=peer.makingOffer || pc.signalingState!=="stable";
-  peer.ignoreOffer=!peer.polite && collision;
+  const offerCollision=peer.makingOffer || pc.signalingState!=="stable";
+  peer.ignoreOffer=!peer.polite && offerCollision;
   if(peer.ignoreOffer) return;
+
   try{
-    if(collision && peer.polite && pc.signalingState!=="stable"){
+    if(offerCollision && peer.polite && pc.signalingState!=="stable"){
       try{ await pc.setLocalDescription({type:"rollback"}); }catch{}
     }
     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
     await flushVoiceIce(peer);
     const answer=await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    if(socket.connected) socket.emit("voice-answer",{target:data.from,answer:pc.localDescription});
+    if(socket.connected){
+      socket.emit("voice-answer",{target:data.from,answer:pc.localDescription});
+    }
   }catch(e){ console.warn("Voice offer handling error",e); }
 });
 
 socket.on("voice-answer",async data=>{
   if(!data?.from || !data?.answer) return;
-  const peer=peers.get(data.from)||createPeer(data.from); if(!peer) return;
+  const peer=peers.get(data.from);
+  if(!peer || peer.closed) return;
   const pc=peer.pc;
   try{
     if(pc.signalingState!=="have-local-offer") return;
@@ -2815,9 +2794,13 @@ socket.on("voice-answer",async data=>{
 
 socket.on("voice-ice",async data=>{
   if(!data?.from || !data?.candidate) return;
-  const peer=peers.get(data.from)||createPeer(data.from); if(!peer) return;
+  const peer=peers.get(data.from) || createPeer(data.from);
+  if(!peer) return;
   try{
-    if(!peer.pc.remoteDescription){ queueVoiceIce(data.from,data.candidate); return; }
+    if(!peer.pc.remoteDescription){
+      queueVoiceIce(data.from,data.candidate);
+      return;
+    }
     await peer.pc.addIceCandidate(data.candidate);
   }catch(e){ console.warn("Voice ICE error",e); }
 });
@@ -2825,7 +2808,11 @@ socket.on("voice-ice",async data=>{
 socket.on("voice-state",data=>console.log("Remote microphone:",data?.id,data?.enabled));
 
 function removePeer(remoteId){
-  clearVoiceTimers(remoteId);
+  clearVoiceRecovery(remoteId);
+  const offerTimer=voiceOfferTimers.get(remoteId);
+  if(offerTimer) clearTimeout(offerTimer);
+  voiceOfferTimers.delete(remoteId);
+
   const peer=peers.get(remoteId);
   if(peer){
     peer.closed=true;
@@ -2834,40 +2821,46 @@ function removePeer(remoteId){
     peers.delete(remoteId);
   }
   pendingVoiceIce.delete(remoteId);
+
   const audio=remoteAudios.get(remoteId);
-  if(audio){ try{audio.pause();}catch{} try{audio.srcObject=null;}catch{} try{audio.remove();}catch{} remoteAudios.delete(remoteId); }
+  if(audio){
+    try{ audio.pause(); }catch{}
+    try{ audio.srcObject=null; }catch{}
+    try{ audio.remove(); }catch{}
+    remoteAudios.delete(remoteId);
+  }
 }
 
 socket.on("connect",()=>{
-  console.log("Socket reconnected; refreshing voice peers");
+  console.log("Socket connected; refreshing voice peers");
   setTimeout(()=>{
-    try{ refreshPeers(); }catch{}
+    try{ refreshPeers(); }catch(e){ console.warn(e); }
+    // Keep the user's microphone stream alive across a temporary Socket.IO reconnect.
+    if(microphoneEnabled && localMicrophoneStream){
+      const track=localMicrophoneStream.getAudioTracks()[0];
+      if(track){
+        for(const peer of peers.values()) setLocalAudioTrack(peer,track).catch(()=>{});
+      }
+    }
   },500);
 });
 
 socket.on("disconnect",()=>{
+  // Do NOT stop the microphone here. Socket.IO can reconnect temporarily.
+  // PeerConnections are cleaned up and rebuilt after reconnect.
   for(const id of [...peers.keys()]) removePeer(id);
   pendingVoiceIce.clear();
-  if(localMicrophoneStream){
-    localMicrophoneStream.getTracks().forEach(t=>t.stop());
-    localMicrophoneStream=null;
-  }
-  microphoneEnabled=false;
-  updateMicrophoneUI();
 });
 
 function unlockRemoteAudio(){
   if(!speakerEnabled) return;
   remoteAudios.forEach(audio=>{
     if(!audio.srcObject) return;
-    audio.muted=false; audio.volume=1;
+    audio.muted=false;
+    audio.volume=1;
     audio.play().catch(()=>{});
   });
 }
-
-document.addEventListener("click",unlockRemoteAudio,{passive:true});
-document.addEventListener("touchstart",unlockRemoteAudio,{passive:true});
-
 
 /* =========================================================
    INITIAL UI
