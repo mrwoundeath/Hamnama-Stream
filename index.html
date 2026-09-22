@@ -710,11 +710,12 @@ button{
 
       <div id="videoControls">
 
-        <button id="backBtn" class="control-btn" type="button" title="۱۰ ثانیه عقب">↶10</button>
-
-        <button id="playBtn" class="control-btn" type="button">▶</button>
-
-        <button id="forwardBtn" class="control-btn" type="button" title="۱۰ ثانیه جلو">10↷</button>
+        <button
+          id="playBtn"
+          class="control-btn"
+        >
+          ▶
+        </button>
 
         <input
           id="progress"
@@ -728,10 +729,6 @@ button{
         <div id="timeLabel">
           00:00 / 00:00
         </div>
-
-        <button id="muteBtn" class="control-btn" type="button" title="بی‌صدا">🔊</button>
-
-        <input id="volumeSlider" class="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="صدا">
 
       </div>
 
@@ -1010,23 +1007,8 @@ const playOverlay =
 const manualPlayBtn =
   document.getElementById("manualPlayBtn");
 
-const videoControls =
-  document.getElementById("videoControls");
-
-const backBtn =
-  document.getElementById("backBtn");
-
 const playBtn =
   document.getElementById("playBtn");
-
-const forwardBtn =
-  document.getElementById("forwardBtn");
-
-const muteBtn =
-  document.getElementById("muteBtn");
-
-const volumeSlider =
-  document.getElementById("volumeSlider");
 
 const progress =
   document.getElementById("progress");
@@ -1374,7 +1356,6 @@ function updateRoleUI(){
     sourceBtn.classList.remove(
       "hidden"
     );
-    updateVideoControlsRole();
 
   }else{
 
@@ -1388,7 +1369,6 @@ function updateRoleUI(){
     sourceBtn.classList.add(
       "hidden"
     );
-    updateVideoControlsRole();
   }
 }
 
@@ -1873,49 +1853,6 @@ function loadSource(source){
 
 
 /* =========================================================
-   PLAYBACK CONTROLS
-========================================================= */
-
-function updateVideoControlsRole(){
-  if(myRole === "host") videoControls.classList.remove("guest");
-  else videoControls.classList.add("guest");
-}
-
-function seekVideoBy(seconds){
-  if(myRole !== "host") return;
-  if(!Number.isFinite(video.duration)) return;
-  const next=Math.max(0,Math.min(video.duration,video.currentTime + seconds));
-  video.currentTime=next;
-  sendPlayback(!video.paused);
-  updateTimeUI();
-}
-
-function updateMuteUI(){
-  const muted=video.muted || video.volume===0;
-  muteBtn.textContent=muted ? "🔇" : "🔊";
-  muteBtn.title=muted ? "فعال کردن صدا" : "بی‌صدا";
-  volumeSlider.value=video.muted ? 0 : video.volume;
-}
-
-backBtn.addEventListener("click",()=>seekVideoBy(-10));
-forwardBtn.addEventListener("click",()=>seekVideoBy(10));
-
-muteBtn.addEventListener("click",()=>{
-  video.muted=!video.muted;
-  if(!video.muted && video.volume===0) video.volume=1;
-  updateMuteUI();
-});
-
-volumeSlider.addEventListener("input",()=>{
-  const v=Math.max(0,Math.min(1,Number(volumeSlider.value)));
-  video.volume=v;
-  video.muted=v===0;
-  updateMuteUI();
-});
-
-video.addEventListener("volumechange",updateMuteUI);
-
-/* =========================================================
    PLAYBACK
 ========================================================= */
 
@@ -2024,15 +1961,35 @@ function sendPlayback(playing){
 }
 
 
-progress.addEventListener("input",()=>{
-  if(myRole !== "host" || !video.duration) return;
-  video.currentTime=Number(progress.value)/100*video.duration;
-  updateTimeUI();
-});
+progress.addEventListener(
+  "input",
+  () => {
 
-progress.addEventListener("change",()=>{
-  if(myRole === "host") sendPlayback(!video.paused);
-});
+    if(!video.duration){
+      return;
+    }
+
+    video.currentTime =
+      Number(progress.value) /
+      100 *
+      video.duration;
+
+    updateTimeUI();
+  }
+);
+
+
+progress.addEventListener(
+  "change",
+  () => {
+
+    if(myRole === "host"){
+      sendPlayback(
+        !video.paused
+      );
+    }
+  }
+);
 
 
 function applyPlayback(state){
@@ -2373,10 +2330,7 @@ async function enableMicrophone(){
           audio:{
             echoCancellation:true,
             noiseSuppression:true,
-            autoGainControl:true,
-            channelCount:1,
-            sampleRate:48000,
-            sampleSize:16
+            autoGainControl:true
           },
           video:false
         }
@@ -2541,326 +2495,885 @@ function updateMicrophoneUI(){
 
 
 /* =========================================================
-   WEBRTC VOICE CHAT — STABLE / AUTO RECOVERY
+   WEBRTC
 ========================================================= */
 
-const VOICE_ICE_SERVERS = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" }
-];
+/*
+  این نسخه از Perfect Negotiation استفاده می‌کند.
 
-const pendingVoiceIce = new Map();
-const voiceOfferTimers = new Map();
-const voiceRecoveryTimers = new Map();
+  polite:
+  اگر دو طرف همزمان بخواهند مذاکره کنند،
+  یک طرف Offer را قبول می‌کند و از Collision
+  جلوگیری می‌شود.
+*/
 
-function voiceShouldInitiate(remoteId){
-  return String(socket.id || "") < String(remoteId || "");
+function isPolite(remoteId){
+
+  return (
+    String(socket.id) >
+    String(remoteId)
+  );
 }
 
-function queueVoiceIce(remoteId, candidate){
-  if(!pendingVoiceIce.has(remoteId)) pendingVoiceIce.set(remoteId, []);
-  pendingVoiceIce.get(remoteId).push(candidate);
-}
-
-async function flushVoiceIce(peer){
-  if(!peer?.pc?.remoteDescription) return;
-  const list = pendingVoiceIce.get(peer.remoteId) || [];
-  pendingVoiceIce.delete(peer.remoteId);
-  for(const candidate of list){
-    try{ await peer.pc.addIceCandidate(candidate); }
-    catch(e){ console.warn("Voice ICE queue error", e); }
-  }
-}
-
-function configureVoiceSender(peer){
-  const sender=peer?.audioTransceiver?.sender;
-  if(!sender) return;
-  try{
-    const p=sender.getParameters();
-    if(!p.encodings || !p.encodings.length) p.encodings=[{}];
-    p.encodings[0].maxBitrate=96000;
-    if("networkPriority" in p.encodings[0]) p.encodings[0].networkPriority="high";
-    if("priority" in p.encodings[0]) p.encodings[0].priority="high";
-    sender.setParameters(p).catch(()=>{});
-  }catch{}
-}
-
-function clearVoiceRecovery(remoteId){
-  const t=voiceRecoveryTimers.get(remoteId);
-  if(t) clearTimeout(t);
-  voiceRecoveryTimers.delete(remoteId);
-}
 
 function createPeer(remoteId){
-  if(!remoteId || remoteId===socket.id) return null;
-  if(peers.has(remoteId)) return peers.get(remoteId);
 
-  const peer={
-    remoteId,
+  if(peers.has(remoteId)){
+    return peers.get(remoteId);
+  }
+
+  const peer = {
+
     pc:null,
-    audioTransceiver:null,
-    remoteStream:null,
+
+    remoteId,
+
+    polite:
+      isPolite(remoteId),
+
     makingOffer:false,
-    polite:!voiceShouldInitiate(remoteId),
+
     ignoreOffer:false,
-    closed:false,
-    recoveryScheduled:false
+
+    isSettingRemoteAnswerPending:false
   };
 
-  const pc=new RTCPeerConnection({
-    iceServers:VOICE_ICE_SERVERS,
-    iceTransportPolicy:"all",
-    bundlePolicy:"max-bundle",
-    rtcpMuxPolicy:"require"
-  });
-  peer.pc=pc;
-  peers.set(remoteId,peer);
 
-  const transceiver=pc.addTransceiver("audio",{direction:"sendrecv"});
-  peer.audioTransceiver=transceiver;
+  const pc =
+    new RTCPeerConnection(
+      {
+        iceServers:[
+          {
+            urls:
+              "stun:stun.l.google.com:19302"
+          },
+          {
+            urls:
+              "stun:stun1.l.google.com:19302"
+          }
+        ]
+      }
+    );
 
-  try{
-    const caps=RTCRtpSender.getCapabilities?.("audio");
-    if(caps?.codecs?.length && transceiver.setCodecPreferences){
-      const opus=caps.codecs.filter(c=>String(c.mimeType).toLowerCase()==="audio/opus");
-      const rest=caps.codecs.filter(c=>String(c.mimeType).toLowerCase()!=="audio/opus");
-      if(opus.length) transceiver.setCodecPreferences([...opus,...rest]);
-    }
-  }catch(e){ console.warn("Voice codec preference unavailable",e); }
 
-  if(microphoneEnabled && localMicrophoneStream){
-    const track=localMicrophoneStream.getAudioTracks()[0];
+  peer.pc =
+    pc;
+
+
+  peers.set(
+    remoteId,
+    peer
+  );
+
+
+  /*
+    فقط Receive Audio از ابتدا وجود دارد.
+
+    بنابراین کاربری که میکروفون خاموش دارد
+    هم می‌تواند صدای دیگران را بشنود.
+  */
+
+  const transceiver =
+    pc.addTransceiver(
+      "audio",
+      {
+        direction:"recvonly"
+      }
+    );
+
+  peer.audioTransceiver =
+    transceiver;
+
+
+  /*
+    اگر همین کاربر میکروفونش روشن باشد،
+    Track را اضافه کن.
+  */
+
+  if(
+    microphoneEnabled &&
+    localMicrophoneStream
+  ){
+
+    const track =
+      localMicrophoneStream
+        .getAudioTracks()[0];
+
     if(track){
-      track.contentHint="speech";
-      transceiver.sender.replaceTrack(track).catch(()=>{});
+
+      transceiver.direction =
+        "sendrecv";
+
+      transceiver.sender
+        .replaceTrack(track)
+        .catch(
+          error =>
+            console.error(
+              "Initial track error:",
+              error
+            )
+        );
     }
   }
-  configureVoiceSender(peer);
 
-  pc.onicecandidate=e=>{
-    if(e.candidate && socket.connected){
-      socket.emit("voice-ice",{target:remoteId,candidate:e.candidate});
-    }
-  };
 
-  pc.ontrack=e=>{
-    if(e.track?.kind!=="audio") return;
-    let audio=remoteAudios.get(remoteId);
-    if(!audio){
-      audio=document.createElement("audio");
-      audio.autoplay=true;
-      audio.playsInline=true;
-      audio.setAttribute("playsinline","");
-      audio.className="remote-audio";
-      audio.style.display="none";
-      document.body.appendChild(audio);
-      remoteAudios.set(remoteId,audio);
-    }
+  /* ICE */
 
-    if(e.streams?.[0]){
-      peer.remoteStream=e.streams[0];
-      audio.srcObject=e.streams[0];
-    }else{
-      if(!peer.remoteStream) peer.remoteStream=new MediaStream();
-      if(!peer.remoteStream.getTracks().includes(e.track)) peer.remoteStream.addTrack(e.track);
-      audio.srcObject=peer.remoteStream;
-    }
+  pc.onicecandidate =
+    event => {
 
-    audio.muted=!speakerEnabled;
-    audio.volume=speakerEnabled?1:0;
-    if(speakerEnabled) audio.play().catch(()=>{});
-  };
+      if(
+        event.candidate
+      ){
 
-  pc.onconnectionstatechange=()=>{
-    const st=pc.connectionState;
-    console.log("Voice connection",remoteId,st);
-    if(st==="connected"){
-      peer.recoveryScheduled=false;
-      clearVoiceRecovery(remoteId);
-      configureVoiceSender(peer);
-    }else if(st==="failed" || st==="disconnected"){
-      scheduleVoiceRecovery(peer,st==="failed"?1000:5000);
-    }else if(st==="closed"){
-      removePeer(remoteId);
-    }
-  };
+        socket.emit(
+          "voice-ice",
+          {
+            target:
+              remoteId,
 
-  pc.oniceconnectionstatechange=()=>{
-    const st=pc.iceConnectionState;
-    console.log("Voice ICE",remoteId,st);
-    if(st==="connected" || st==="completed"){
-      peer.recoveryScheduled=false;
-      clearVoiceRecovery(remoteId);
-    }else if(st==="failed"){
-      scheduleVoiceRecovery(peer,1000);
-    }else if(st==="disconnected"){
-      scheduleVoiceRecovery(peer,5000);
-    }
-  };
+            candidate:
+              event.candidate
+          }
+        );
+      }
+    };
 
-  pc.onnegotiationneeded=()=>{
-    if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,150);
-  };
 
-  if(voiceShouldInitiate(remoteId)) scheduleVoiceOffer(peer,250);
+  /*
+    Track دریافتی.
+
+    اینجا هیچ local playback نداریم.
+    فقط صدای remote ساخته می‌شود.
+  */
+
+  pc.ontrack =
+    event => {
+
+      if(
+        event.track.kind !==
+        "audio"
+      ){
+        return;
+      }
+
+      let audio =
+        remoteAudios.get(
+          remoteId
+        );
+
+      if(!audio){
+
+        audio =
+          document.createElement(
+            "audio"
+          );
+
+        audio.autoplay =
+          true;
+
+        audio.playsInline =
+          true;
+
+        audio.setAttribute(
+          "playsinline",
+          ""
+        );
+
+        /*
+          مهم:
+          این audio صدای شخص مقابل است،
+          نه صدای خودمان.
+        */
+
+        audio.className =
+          "remote-audio";
+
+        audio.style.display =
+          "none";
+
+        document.body.appendChild(
+          audio
+        );
+
+        remoteAudios.set(
+          remoteId,
+          audio
+        );
+      }
+
+
+      if(event.streams?.[0]){
+
+        audio.srcObject =
+          event.streams[0];
+
+      }else{
+
+        let stream =
+          audio.srcObject;
+
+        if(!stream){
+
+          stream =
+            new MediaStream();
+
+          audio.srcObject =
+            stream;
+        }
+
+        if(
+          !stream
+            .getAudioTracks()
+            .includes(event.track)
+        ){
+
+          stream.addTrack(
+            event.track
+          );
+        }
+      }
+
+
+      audio.muted =
+        !speakerEnabled;
+
+      audio.volume =
+        speakerEnabled
+          ? 1
+          : 0;
+
+
+      /*
+        تلاش برای شروع پخش.
+      */
+
+      audio.play()
+        .catch(
+          () => {
+            /*
+              روی بعضی موبایل‌ها autoplay
+              صدای WebRTC تا اولین تعامل
+              کاربر مسدود می‌شود.
+            */
+          }
+        );
+    };
+
+
+  /*
+    Perfect Negotiation
+  */
+
+  pc.onnegotiationneeded =
+    async () => {
+
+      try{
+
+        peer.makingOffer =
+          true;
+
+        await pc.setLocalDescription();
+
+        socket.emit(
+          "voice-offer",
+          {
+            target:
+              remoteId,
+
+            offer:
+              pc.localDescription
+          }
+        );
+
+      }catch(error){
+
+        console.error(
+          "Negotiation error:",
+          error
+        );
+
+      }finally{
+
+        peer.makingOffer =
+          false;
+      }
+    };
+
+
+  pc.onconnectionstatechange =
+    () => {
+
+      console.log(
+        "Voice connection",
+        remoteId,
+        pc.connectionState
+      );
+
+
+      if(
+        pc.connectionState ===
+          "failed"
+      ){
+
+        /*
+          یک بار ICE restart.
+        */
+
+        try{
+
+          pc.restartIce();
+
+        }catch{}
+      }
+
+
+      if(
+        pc.connectionState ===
+          "closed"
+      ){
+
+        removePeer(
+          remoteId
+        );
+      }
+    };
+
+
   return peer;
 }
 
-function scheduleVoiceOffer(peer,delay=150){
-  if(!peer || peer.closed || !voiceShouldInitiate(peer.remoteId)) return;
-  if(voiceOfferTimers.has(peer.remoteId)) return;
-  const timer=setTimeout(()=>{
-    voiceOfferTimers.delete(peer.remoteId);
-    negotiateVoicePeer(peer,false);
-  },delay);
-  voiceOfferTimers.set(peer.remoteId,timer);
-}
 
-async function negotiateVoicePeer(peer,iceRestart=false){
-  if(!peer || peer.closed || !peer.pc || !voiceShouldInitiate(peer.remoteId)) return;
-  const pc=peer.pc;
-  if(peer.makingOffer || pc.signalingState!=="stable") return;
-  try{
-    peer.makingOffer=true;
-    const offer=await pc.createOffer(iceRestart?{iceRestart:true}:{});
-    await pc.setLocalDescription(offer);
-    if(socket.connected){
-      socket.emit("voice-offer",{target:peer.remoteId,offer:pc.localDescription});
+/* =========================================================
+   REFRESH PEERS
+========================================================= */
+
+async function refreshPeers(){
+
+  const activeIds =
+    new Set(
+      currentUsers
+        .map(
+          user => user.id
+        )
+        .filter(
+          id =>
+            id &&
+            id !== socket.id
+        )
+    );
+
+
+  /*
+    Peerهای افراد خارج‌شده را ببند.
+  */
+
+  for(
+    const [
+      remoteId,
+      peer
+    ]
+    of peers
+  ){
+
+    if(
+      !activeIds.has(
+        remoteId
+      )
+    ){
+
+      try{
+        peer.pc.close();
+      }catch{}
+
+      removePeer(
+        remoteId
+      );
     }
-  }catch(e){ console.warn("Voice offer error",e); }
-  finally{ peer.makingOffer=false; }
-}
+  }
 
-function scheduleVoiceRecovery(peer,delay){
-  if(!peer || peer.closed || peer.recoveryScheduled) return;
-  peer.recoveryScheduled=true;
-  const timer=setTimeout(()=>{
-    voiceRecoveryTimers.delete(peer.remoteId);
-    peer.recoveryScheduled=false;
-    recoverVoicePeer(peer);
-  },delay);
-  voiceRecoveryTimers.set(peer.remoteId,timer);
-}
 
-function recoverVoicePeer(peer){
-  if(!peer || peer.closed) return;
-  const pc=peer.pc;
-  if(pc.connectionState==="connected" && (pc.iceConnectionState==="connected" || pc.iceConnectionState==="completed")) return;
+  /*
+    برای هر فرد جدید Peer بساز.
+  */
 
-  console.log("Recovering voice connection",peer.remoteId);
+  for(
+    const remoteId
+    of activeIds
+  ){
 
-  // A clean PeerConnection is more reliable on mobile browsers than
-  // repeatedly forcing rollback/ICE-restart after a stale connection.
-  const id=peer.remoteId;
-  removePeer(id);
-  const fresh=createPeer(id);
-  if(fresh && voiceShouldInitiate(id)) scheduleVoiceOffer(fresh,300);
-}
-
-socket.on("voice-offer",async data=>{
-  if(!data?.from || !data?.offer) return;
-  const peer=createPeer(data.from);
-  if(!peer) return;
-  const pc=peer.pc;
-  const offerCollision=peer.makingOffer || pc.signalingState!=="stable";
-  peer.ignoreOffer=!peer.polite && offerCollision;
-  if(peer.ignoreOffer) return;
-
-  try{
-    if(offerCollision && peer.polite && pc.signalingState!=="stable"){
-      try{ await pc.setLocalDescription({type:"rollback"}); }catch{}
+    if(
+      peers.has(
+        remoteId
+      )
+    ){
+      continue;
     }
-    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-    await flushVoiceIce(peer);
-    const answer=await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    if(socket.connected){
-      socket.emit("voice-answer",{target:data.from,answer:pc.localDescription});
+
+    createPeer(
+      remoteId
+    );
+  }
+}
+
+
+/* =========================================================
+   SET LOCAL AUDIO TRACK
+========================================================= */
+
+async function setLocalAudioTrack(
+  peer,
+  track
+){
+
+  if(!peer || !peer.pc){
+    return;
+  }
+
+  const pc =
+    peer.pc;
+
+
+  /*
+    اول ببین آیا Sender صوتی داریم.
+  */
+
+  let sender =
+    pc.getSenders()
+      .find(
+        s =>
+          s.track?.kind ===
+          "audio"
+      );
+
+
+  /*
+    اگر Sender نداریم،
+    Transceiver صوتی را پیدا کن.
+  */
+
+  if(!sender){
+
+    const transceiver =
+      pc.getTransceivers()
+        .find(
+          t =>
+            t.receiver
+              ?.track
+              ?.kind ===
+              "audio"
+        );
+
+    if(transceiver){
+
+      peer.audioTransceiver =
+        transceiver;
+
+      sender =
+        transceiver.sender;
     }
-  }catch(e){ console.warn("Voice offer handling error",e); }
-});
+  }
 
-socket.on("voice-answer",async data=>{
-  if(!data?.from || !data?.answer) return;
-  const peer=peers.get(data.from);
-  if(!peer || peer.closed) return;
-  const pc=peer.pc;
-  try{
-    if(pc.signalingState!=="have-local-offer") return;
-    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-    await flushVoiceIce(peer);
-  }catch(e){ console.warn("Voice answer error",e); }
-});
 
-socket.on("voice-ice",async data=>{
-  if(!data?.from || !data?.candidate) return;
-  const peer=peers.get(data.from) || createPeer(data.from);
-  if(!peer) return;
-  try{
-    if(!peer.pc.remoteDescription){
-      queueVoiceIce(data.from,data.candidate);
+  /*
+    اگر هنوز Sender نداریم،
+    یک Track جدید اضافه کن.
+  */
+
+  if(!sender){
+
+    sender =
+      pc.addTrack(
+        track,
+        new MediaStream([
+          track
+        ])
+      );
+
+  }else{
+
+    await sender.replaceTrack(
+      track
+    );
+  }
+
+
+  /*
+    Direction باید sendrecv باشد.
+  */
+
+  if(
+    peer.audioTransceiver
+  ){
+
+    peer.audioTransceiver.direction =
+      "sendrecv";
+  }
+}
+
+
+/* =========================================================
+   VOICE OFFER
+========================================================= */
+
+socket.on(
+  "voice-offer",
+  async data => {
+
+    if(
+      !data?.from ||
+      !data?.offer
+    ){
       return;
     }
-    await peer.pc.addIceCandidate(data.candidate);
-  }catch(e){ console.warn("Voice ICE error",e); }
-});
 
-socket.on("voice-state",data=>console.log("Remote microphone:",data?.id,data?.enabled));
+    const remoteId =
+      data.from;
 
-function removePeer(remoteId){
-  clearVoiceRecovery(remoteId);
-  const offerTimer=voiceOfferTimers.get(remoteId);
-  if(offerTimer) clearTimeout(offerTimer);
-  voiceOfferTimers.delete(remoteId);
+    const peer =
+      createPeer(
+        remoteId
+      );
 
-  const peer=peers.get(remoteId);
-  if(peer){
-    peer.closed=true;
-    try{ peer.pc.onnegotiationneeded=null; }catch{}
-    try{ peer.pc.close(); }catch{}
-    peers.delete(remoteId);
+    const pc =
+      peer.pc;
+
+
+    /*
+      Perfect Negotiation:
+      اگر Offer Collision اتفاق افتاد،
+      طرف polite آن را قبول می‌کند.
+    */
+
+    const offerCollision =
+      peer.makingOffer ||
+      pc.signalingState !==
+        "stable";
+
+
+    peer.ignoreOffer =
+      !peer.polite &&
+      offerCollision;
+
+
+    if(peer.ignoreOffer){
+
+      console.log(
+        "Ignoring offer collision from",
+        remoteId
+      );
+
+      return;
+    }
+
+
+    try{
+
+      if(
+        offerCollision &&
+        peer.polite
+      ){
+
+        await pc.setLocalDescription(
+          {
+            type:"rollback"
+          }
+        );
+      }
+
+
+      await pc.setRemoteDescription(
+        new RTCSessionDescription(
+          data.offer
+        )
+      );
+
+
+      const answer =
+        await pc.createAnswer();
+
+      await pc.setLocalDescription(
+        answer
+      );
+
+
+      socket.emit(
+        "voice-answer",
+        {
+          target:
+            remoteId,
+
+          answer:
+            pc.localDescription
+        }
+      );
+
+    }catch(error){
+
+      console.error(
+        "Offer handling error:",
+        error
+      );
+    }
   }
-  pendingVoiceIce.delete(remoteId);
+);
 
-  const audio=remoteAudios.get(remoteId);
+
+/* =========================================================
+   VOICE ANSWER
+========================================================= */
+
+socket.on(
+  "voice-answer",
+  async data => {
+
+    if(
+      !data?.from ||
+      !data?.answer
+    ){
+      return;
+    }
+
+    const peer =
+      peers.get(
+        data.from
+      );
+
+    if(!peer){
+      return;
+    }
+
+    try{
+
+      await peer.pc.setRemoteDescription(
+        new RTCSessionDescription(
+          data.answer
+        )
+      );
+
+    }catch(error){
+
+      console.error(
+        "Answer error:",
+        error
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   ICE
+========================================================= */
+
+socket.on(
+  "voice-ice",
+  async data => {
+
+    if(
+      !data?.from ||
+      !data?.candidate
+    ){
+      return;
+    }
+
+    const peer =
+      peers.get(
+        data.from
+      );
+
+    if(!peer){
+      return;
+    }
+
+    try{
+
+      if(
+        peer.ignoreOffer
+      ){
+        return;
+      }
+
+      await peer.pc.addIceCandidate(
+        new RTCIceCandidate(
+          data.candidate
+        )
+      );
+
+    }catch(error){
+
+      console.error(
+        "ICE error:",
+        error
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   VOICE STATE
+========================================================= */
+
+socket.on(
+  "voice-state",
+  data => {
+
+    /*
+      این event فقط برای نمایش وضعیت است.
+      پخش صدا وابسته به روشن بودن میکروفون
+      طرف مقابل نیست.
+    */
+
+    console.log(
+      "Remote microphone:",
+      data?.id,
+      data?.enabled
+    );
+  }
+);
+
+
+/* =========================================================
+   REMOVE PEER
+========================================================= */
+
+function removePeer(
+  remoteId
+){
+
+  const peer =
+    peers.get(
+      remoteId
+    );
+
+  if(peer){
+
+    try{
+      peer.pc.close();
+    }catch{}
+
+    peers.delete(
+      remoteId
+    );
+  }
+
+
+  const audio =
+    remoteAudios.get(
+      remoteId
+    );
+
   if(audio){
-    try{ audio.pause(); }catch{}
-    try{ audio.srcObject=null; }catch{}
-    try{ audio.remove(); }catch{}
-    remoteAudios.delete(remoteId);
+
+    try{
+      audio.pause();
+    }catch{}
+
+    try{
+      audio.srcObject =
+        null;
+    }catch{}
+
+    try{
+      audio.remove();
+    }catch{}
+
+    remoteAudios.delete(
+      remoteId
+    );
   }
 }
 
-socket.on("connect",()=>{
-  console.log("Socket connected; refreshing voice peers");
-  setTimeout(()=>{
-    try{ refreshPeers(); }catch(e){ console.warn(e); }
-    // Keep the user's microphone stream alive across a temporary Socket.IO reconnect.
-    if(microphoneEnabled && localMicrophoneStream){
-      const track=localMicrophoneStream.getAudioTracks()[0];
-      if(track){
-        for(const peer of peers.values()) setLocalAudioTrack(peer,track).catch(()=>{});
-      }
-    }
-  },500);
-});
 
-socket.on("disconnect",()=>{
-  // Do NOT stop the microphone here. Socket.IO can reconnect temporarily.
-  // PeerConnections are cleaned up and rebuilt after reconnect.
-  for(const id of [...peers.keys()]) removePeer(id);
-  pendingVoiceIce.clear();
-});
+/* =========================================================
+   DISCONNECT
+========================================================= */
+
+socket.on(
+  "disconnect",
+  () => {
+
+    for(
+      const [
+        remoteId
+      ]
+      of peers
+    ){
+
+      removePeer(
+        remoteId
+      );
+    }
+
+    if(localMicrophoneStream){
+
+      localMicrophoneStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+      localMicrophoneStream =
+        null;
+    }
+
+    microphoneEnabled =
+      false;
+
+    updateMicrophoneUI();
+  }
+);
+
+
+/* =========================================================
+   MOBILE AUDIO UNLOCK
+========================================================= */
 
 function unlockRemoteAudio(){
-  if(!speakerEnabled) return;
-  remoteAudios.forEach(audio=>{
-    if(!audio.srcObject) return;
-    audio.muted=false;
-    audio.volume=1;
-    audio.play().catch(()=>{});
-  });
+
+  if(!speakerEnabled){
+    return;
+  }
+
+  remoteAudios.forEach(
+    audio => {
+
+      audio.muted =
+        false;
+
+      audio.volume =
+        1;
+
+      if(audio.srcObject){
+
+        audio.play()
+          .catch(
+            () => {}
+          );
+      }
+    }
+  );
 }
+
+
+document.addEventListener(
+  "click",
+  unlockRemoteAudio,
+  {
+    passive:true
+  }
+);
+
+document.addEventListener(
+  "touchstart",
+  unlockRemoteAudio,
+  {
+    passive:true
+  }
+);
+
 
 /* =========================================================
    INITIAL UI
