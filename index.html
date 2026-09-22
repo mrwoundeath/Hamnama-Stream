@@ -710,11 +710,12 @@ button{
 
       <div id="videoControls">
 
-        <button id="backBtn" class="control-btn" type="button" title="۱۰ ثانیه عقب">↶10</button>
-
-        <button id="playBtn" class="control-btn" type="button">▶</button>
-
-        <button id="forwardBtn" class="control-btn" type="button" title="۱۰ ثانیه جلو">10↷</button>
+        <button
+          id="playBtn"
+          class="control-btn"
+        >
+          ▶
+        </button>
 
         <input
           id="progress"
@@ -728,10 +729,6 @@ button{
         <div id="timeLabel">
           00:00 / 00:00
         </div>
-
-        <button id="muteBtn" class="control-btn" type="button" title="بی‌صدا">🔊</button>
-
-        <input id="volumeSlider" class="volume-slider" type="range" min="0" max="1" step="0.01" value="1" title="صدا">
 
       </div>
 
@@ -1010,23 +1007,8 @@ const playOverlay =
 const manualPlayBtn =
   document.getElementById("manualPlayBtn");
 
-const videoControls =
-  document.getElementById("videoControls");
-
-const backBtn =
-  document.getElementById("backBtn");
-
 const playBtn =
   document.getElementById("playBtn");
-
-const forwardBtn =
-  document.getElementById("forwardBtn");
-
-const muteBtn =
-  document.getElementById("muteBtn");
-
-const volumeSlider =
-  document.getElementById("volumeSlider");
 
 const progress =
   document.getElementById("progress");
@@ -1374,7 +1356,6 @@ function updateRoleUI(){
     sourceBtn.classList.remove(
       "hidden"
     );
-    updateVideoControlsRole();
 
   }else{
 
@@ -1388,7 +1369,6 @@ function updateRoleUI(){
     sourceBtn.classList.add(
       "hidden"
     );
-    updateVideoControlsRole();
   }
 }
 
@@ -1873,49 +1853,6 @@ function loadSource(source){
 
 
 /* =========================================================
-   PLAYBACK CONTROLS
-========================================================= */
-
-function updateVideoControlsRole(){
-  if(myRole === "host") videoControls.classList.remove("guest");
-  else videoControls.classList.add("guest");
-}
-
-function seekVideoBy(seconds){
-  if(myRole !== "host") return;
-  if(!Number.isFinite(video.duration)) return;
-  const next=Math.max(0,Math.min(video.duration,video.currentTime + seconds));
-  video.currentTime=next;
-  sendPlayback(!video.paused);
-  updateTimeUI();
-}
-
-function updateMuteUI(){
-  const muted=video.muted || video.volume===0;
-  muteBtn.textContent=muted ? "🔇" : "🔊";
-  muteBtn.title=muted ? "فعال کردن صدا" : "بی‌صدا";
-  volumeSlider.value=video.muted ? 0 : video.volume;
-}
-
-backBtn.addEventListener("click",()=>seekVideoBy(-10));
-forwardBtn.addEventListener("click",()=>seekVideoBy(10));
-
-muteBtn.addEventListener("click",()=>{
-  video.muted=!video.muted;
-  if(!video.muted && video.volume===0) video.volume=1;
-  updateMuteUI();
-});
-
-volumeSlider.addEventListener("input",()=>{
-  const v=Math.max(0,Math.min(1,Number(volumeSlider.value)));
-  video.volume=v;
-  video.muted=v===0;
-  updateMuteUI();
-});
-
-video.addEventListener("volumechange",updateMuteUI);
-
-/* =========================================================
    PLAYBACK
 ========================================================= */
 
@@ -2024,15 +1961,35 @@ function sendPlayback(playing){
 }
 
 
-progress.addEventListener("input",()=>{
-  if(myRole !== "host" || !video.duration) return;
-  video.currentTime=Number(progress.value)/100*video.duration;
-  updateTimeUI();
-});
+progress.addEventListener(
+  "input",
+  () => {
 
-progress.addEventListener("change",()=>{
-  if(myRole === "host") sendPlayback(!video.paused);
-});
+    if(!video.duration){
+      return;
+    }
+
+    video.currentTime =
+      Number(progress.value) /
+      100 *
+      video.duration;
+
+    updateTimeUI();
+  }
+);
+
+
+progress.addEventListener(
+  "change",
+  () => {
+
+    if(myRole === "host"){
+      sendPlayback(
+        !video.paused
+      );
+    }
+  }
+);
 
 
 function applyPlayback(state){
